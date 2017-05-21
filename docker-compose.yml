@@ -1,0 +1,19 @@
+version: '2'
+services:
+  apache_with_php:
+#    image: php:7.0.19-apache
+    build: .
+    volumes:
+      - ./src:/var/www/html/
+#      - ./apache-config/httpd.conf:/usr/local/apache2/conf/httpd.conf
+    ports:
+      - "80:80"
+  mysql:
+    image: mysql:5.6.33
+    volumes:
+      - ./localdb:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: "root"
+      MYSQL_DATABASE: "comment-sidecar"
