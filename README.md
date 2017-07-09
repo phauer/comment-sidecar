@@ -22,3 +22,37 @@ comment-sidecar is a lightweight, tracking-free, self-hosted comment service. It
 # Disclaimer
 
 I'm not a PHP expert. ;-)
+
+# Development
+
+## PHP Backend Service
+
+```bash
+# start apache with php and mysql database in docker containers
+docker-compose up -d
+
+# create the table 'comments'. either execute test/create-comments-table.sql manually or execute the tests (see below)
+
+# now you can execute HTTP request like
+http /comment-sidecar.php
+http POST /comment-sidecar.php < adhoc/comment-payload.json
+
+# develop in src/comment-sidecar.php. The changes take affect immediately. 
+```
+
+## Run Python Test for the Backend
+
+```bash
+# start mysql database in docker container
+docker-compose up -d
+
+# set up python environment
+python3 --version # you need at least python 3.5 to run the tests
+sudo apt install python3-pip
+sudo apt install libmysqlclient-dev python-dev && pip3 install mysqlclient
+pip3 install requests
+pip3 install path.py
+
+cd test
+./test_comment_sidecar.py
+```
