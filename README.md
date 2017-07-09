@@ -17,6 +17,7 @@ comment-sidecar is a lightweight, tracking-free, self-hosted comment service. It
 - Gravatar Support.
 - Markdown Support.
 - Use one comment-sidecar installation for multiple sites.
+- Replying to a comment is supported.
 
 # Disclaimer
 

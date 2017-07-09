@@ -2,17 +2,23 @@
 /**
  * REST API:
  * GET comment-sidecar.php
+ * POST comment-sidecar.php with comment JSON
  */
 
-function process(){
+function main(){
     $method = $_SERVER['REQUEST_METHOD'];
     $request = explode('/', trim($_SERVER['PATH_INFO'],'/'));
-    $input = json_decode(file_get_contents('php://input'),true);
     header('Content-Type: application/json');
     try {
         switch ($method) {
             case 'GET':  {
+                //TODO where `site`, `path`
                 echo getCommentsJson();
+                break;
+            }
+            case 'POST': {
+                createComment();
+                http_response_code(201);
                 break;
             }
         }
@@ -20,12 +26,6 @@ function process(){
         http_response_code(500);
         echo '{ "message" : "'.$exception->getMessage().'" }';
     }
-
-    //
-    //if (!$result) {
-    //    http_response_code(404);
-    //    die(mysqli_error($link));
-    //}
 }
 
 function connect(){
@@ -42,7 +42,7 @@ function connect(){
 
 function getCommentsJson() {
         $handler = connect();
-        $stmt = $handler->prepare("SELECT i2d, author, email, content, reply_to as replyTo, site, path, unix_timestamp(creation_date) as creationTimestamp FROM comments order by creation_date desc;");
+        $stmt = $handler->prepare("SELECT id, author, email, content, reply_to as replyTo, site, path, unix_timestamp(creation_date) as creationTimestamp FROM comments order by creation_date desc;");
         $stmt->execute();
         $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $json = json_encode($results);
@@ -50,4 +50,19 @@ function getCommentsJson() {
         return $json;
 }
 
-process();
+function createComment() {
+    $input = json_decode(file_get_contents('php://input'),true);
+    $handler = connect();
+    $stmt = $handler->prepare("INSERT INTO comments (author, email, content, reply_to, site, path, creation_date) VALUES (:author, :email, :content, :reply_to, :site, :path, from_unixtime(:creation_date_timestamp));");
+    $stmt->bindParam(':author', $input["author"]);
+    $stmt->bindParam(':email', $input["email"]);
+    $stmt->bindParam(':content', $input["content"]);
+    $stmt->bindParam(':reply_to', $input["replyTo"]);
+    $stmt->bindParam(':site', $input["site"]);
+    $stmt->bindParam(':path', $input["path"]);
+    $stmt->bindParam(':creation_date_timestamp', $input["creationTimestamp"]);
+    $stmt->execute();
+    $handler = null; //close connection
+}
+
+main();

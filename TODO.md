@@ -1,4 +1,5 @@
 
+- write tests!
 - pagination
 - db:
     - index correctly used? use `explain`.
