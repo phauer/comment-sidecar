@@ -17,7 +17,7 @@
     - index correctly used? use `explain`.
     - insert with different timezone? -> insert as unix timestamp not as string
     - use epoch timestamp or datetime with timezone for read and write
-- deletion link: 
+- deletion link (comes with security efforts): 
     - on post creation, generate a token. this is required to delete a post (passed via url). this way, nobody can easily clear the whole db just by increasing the id.
         - alternative: use uuid instead of id&token. works, if this uuid is not delivered to client at all. so this uuid is hidden.
     - additional pw protection ("admin pw" or so). put in local webstorage for convenience?

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>comment-sidecar playground</title>
+</head>
+<body>
+
+<div id="comment-sidecar"></div>
+<script type="text/javascript">
+    (function() {
+        var scriptNode = document.createElement('script');
+        scriptNode.type = 'text/javascript';
+        scriptNode.async = true;
+        scriptNode.src = '/comment-sidecar.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(scriptNode);
+    })();
+</script>
+
+</body>
+</html>
