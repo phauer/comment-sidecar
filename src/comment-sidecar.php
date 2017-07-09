@@ -1,19 +1,17 @@
 <?php
 /**
  * REST API:
- * GET comment-sidecar.php
+ * GET comment-sidecar.php?site=<site>&path=<path>
  * POST comment-sidecar.php with comment JSON
  */
 
-function main(){
+function main() {
     $method = $_SERVER['REQUEST_METHOD'];
-    $request = explode('/', trim($_SERVER['PATH_INFO'],'/'));
     header('Content-Type: application/json');
     try {
         switch ($method) {
-            case 'GET':  {
-                //TODO where `site`, `path`
-                echo getCommentsJson();
+            case 'GET': {
+                echo getCommentsAsJson();
                 break;
             }
             case 'POST': {
@@ -22,13 +20,18 @@ function main(){
                 break;
             }
         }
-    } catch (PDOException $exception) {
-        http_response_code(500);
-        echo '{ "message" : "'.$exception->getMessage().'" }';
+    } catch (Exception $ex) {
+        if ($ex instanceof InvalidRequestException) {
+            http_response_code(400);
+            echo '{ "message" : "' . $ex->getMessage() . '" }';
+        } else { //like PDOException
+            http_response_code(500);
+            echo '{ "message" : "' . $ex->getMessage() . '" }';
+        }
     }
 }
 
-function connect(){
+function connect() {
     //docker-compose creates links and adds entries to /etc/hosts -> use "commentsidecar_mysql_1" instead of "localhost"
     $dbhost = 'commentsidecar_mysql_1';
     $dbname = 'comment-sidecar';
@@ -40,14 +43,20 @@ function connect(){
     return $handler;
 }
 
-function getCommentsJson() {
-        $handler = connect();
-        $stmt = $handler->prepare("SELECT id, author, email, content, reply_to as replyTo, site, path, unix_timestamp(creation_date) as creationTimestamp FROM comments order by creation_date desc;");
-        $stmt->execute();
-        $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        $json = json_encode($results);
-        $handler = null; //close connection
-        return $json;
+function getCommentsAsJson() {
+    if (!isset($_GET['site']) or empty($_GET['site'])
+        or !isset($_GET['path']) or empty($_GET['path'])) {
+        throw new InvalidRequestException("Please submit both query parameters 'site' and 'path'");
+    }
+    $handler = connect();
+    $stmt = $handler->prepare("SELECT id, author, email, content, reply_to as replyTo, site, path, unix_timestamp(creation_date) as creationTimestamp FROM comments WHERE site = :site and path = :path ORDER BY creation_date desc;");
+    $stmt->bindParam(":site", $_GET['site']);
+    $stmt->bindParam(":path", $_GET['path']);
+    $stmt->execute();
+    $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $json = json_encode($results);
+    $handler = null; //close connection
+    return $json;
 }
 
 function createComment() {
@@ -64,5 +73,7 @@ function createComment() {
     $stmt->execute();
     $handler = null; //close connection
 }
+
+class InvalidRequestException extends Exception {}
 
 main();
