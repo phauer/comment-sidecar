@@ -2,4 +2,8 @@
 - db:
     - index correctly used? use `explain`.
     - insert with different timezone? -> insert as unix timestamp not as string
-    - use epoch timestamp or datetime with timezone for read and write 
+    - use epoch timestamp or datetime with timezone for read and write
+- deletion link: 
+    - on post creation, generate a token. this is required to delete a post (passed via url). this way, nobody can easily clear the whole db just by increasing the id.
+    - zusätzlich pw schutz. aber im local webstorage ablegen.
+    - moreover, only trash comments (set to set trashed/deleted). don't really delete it from db. reduces effects of an attack.
