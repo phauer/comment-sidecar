@@ -7,9 +7,9 @@ comment-sidecar is a lightweight, tracking-free, self-hosted comment service. It
   
 # Planned Features
 
-- Tracking-free and fast. The comment-sidecar only needs one additional request. Contrary, with Disqus my site needs 124 requests to be fully loaded. Without: only 14! Read [here](http://donw.io/post/github-comments/) for more details about Disqus' tracking greed and performance hit.
+- Tracking-free and fast. The comment-sidecar only needs one additional request. Contrary, Disqus leads to **110 additional requests**! Read [here](http://donw.io/post/github-comments/) for more details about Disqus' tracking greed and performance impact.
 - Privacy. Your data belongs to you.
-- Easy to integrate. Just a simple Javascript call. This makes is easy to use the comment-sidecar in conjunction with static site generators like Hugo or Jekyll. You don't have to integrate PHP code in the generated HTML files.
+- Easy to integrate. Just a simple Javascript call. This makes is easy to use the comment-sidecar in conjunction with static site generators like **Hugo** or Jekyll. You don't have to integrate PHP code in the generated HTML files.
 - Lightweight: Zero Dependencies.
 - No performance impact on TTFB (Time To First Byte), because the comments are loaded asynchronously.
 - Spam Protection.
