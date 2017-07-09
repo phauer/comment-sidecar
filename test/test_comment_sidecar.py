@@ -3,6 +3,7 @@
 import MySQLdb # sudo apt install libmysqlclient-dev python-dev && pip3 install mysqlclient
 import requests # pip3 install requests
 import unittest
+from path import Path # pip3 install path.py
 
 COMMENT_SIDECAR_URL = 'http://localhost/comment-sidecar.php'
 
@@ -11,7 +12,9 @@ class PlaylistTest(unittest.TestCase):
         # first, run `docker-compose up`
         db = MySQLdb.connect(host='127.0.0.1', port=3306, user='root', passwd='root', db='comment-sidecar')
         cur = db.cursor()
-        cur.execute("TRUNCATE TABLE comments;")
+        with Path("create-comments-table.sql").open('r') as sql:
+            query = "\n".join(sql.readlines())
+            cur.execute(query)
 
     def test_create_and_get_comment(self):
         post_payload = {
