@@ -1,4 +1,5 @@
 
+- configure and setup (table creation script; where to put db credentials)
 - write tests!
 - pagination
 - db:
