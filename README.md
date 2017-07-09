@@ -33,9 +33,9 @@ docker-compose up -d
 
 # create the table 'comments'. either execute test/create-comments-table.sql manually or execute the tests (see below)
 
-# now you can execute HTTP request like
-http /comment-sidecar.php
-http POST /comment-sidecar.php < adhoc/comment-payload.json
+# now you can execute HTTP requests like
+http localhost/comment-sidecar.php
+http POST localhost/comment-sidecar.php < adhoc/comment-payload.json
 
 # develop in src/comment-sidecar.php. The changes take affect immediately. 
 ```
