@@ -19,10 +19,6 @@ comment-sidecar is a lightweight, tracking-free, self-hosted comment service. It
 - Use one comment-sidecar installation for multiple sites.
 - Replying to a comment is supported.
 
-# Disclaimer
-
-I'm not a PHP expert. ;-)
-
 # Development
 
 ## PHP Backend Service
