@@ -39,6 +39,11 @@ class PlaylistTest(unittest.TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json()["message"], INVALID_QUERY_PARAMS)
 
+    def test_GET_empty_array_if_no_comments(self):
+        response = get_comments()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.text, '[]')
+
     def test_POST_and_GET_comment(self):
         post_payload = create_payload()
         post_response = requests.post(url=COMMENT_SIDECAR_URL, json=post_payload)

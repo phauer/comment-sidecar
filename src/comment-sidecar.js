@@ -1,7 +1,18 @@
 (function() {
-    //TODO use iframe (sandbox) - https://blog.dareboost.com/en/2015/07/securing-iframe-sandbox-attribute/
-    const commentArea = document.querySelector("#comment-sidecar");
-    const createDOMForComment = comment => {
+    const commentArea = document.querySelector("#comment-sidecar")
+    const handleComments = comments => {
+        const heading = document.createElement("h1");
+        heading.innerText = 'Comments';
+        commentArea.appendChild(heading);
+        if (comments.length === 0){
+            const heading = document.createElement("p");
+            heading.innerText = 'No comments yet. Be the first!';
+            commentArea.appendChild(heading);
+        } else {
+            comments.forEach(drawDOMForComment);
+        }
+    };
+    const drawDOMForComment = comment => {
         const postDiv = document.createElement('div');
         postDiv.setAttribute("class", "post");
         postDiv.innerHTML = `
@@ -17,5 +28,5 @@
     const path = encodeURIComponent(location.pathname);
     fetch(`/comment-sidecar.php?site=localhost&path=${path}`)
         .then(response => response.json())
-        .then(comments => comments.forEach(createDOMForComment));
+        .then(handleComments);
 })();

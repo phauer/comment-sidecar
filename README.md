@@ -11,6 +11,7 @@ comment-sidecar is a lightweight, tracking-free, self-hosted comment service. It
 - Privacy. Your data belongs to you.
 - Easy to integrate. Just a simple Javascript call. This makes is easy to use the comment-sidecar in conjunction with static site generators like **Hugo** or Jekyll. You don't have to integrate PHP code in the generated HTML files.
 - Lightweight: Zero Dependencies.
+- No account required. The visitors of your side don't need to have an account to drop a comment.
 - No performance impact on TTFB (Time To First Byte), because the comments are loaded asynchronously.
 - Spam Protection.
 - E-Mail Notification. E-Mail includes a deletion link to easily remove undesired comments. 

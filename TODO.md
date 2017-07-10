@@ -30,4 +30,3 @@
 - rate limit: put ip with timestamp into php cache (spam; DoS)
 - frontend: no form action in HTML. no form-encoded http request. custom ajax request and js payload (spam bots)
 - CORS and referer check (other web sites can't use your comment-sidecar installation)
-- sandbox iframe: no access to page's DOM or locally stored data. can't draw to arbitrary positions on site.
