@@ -54,7 +54,7 @@ class PlaylistTest(unittest.TestCase):
         self.assertEqual(returned_comment["author"], post_payload["author"])
         self.assertEqual(returned_comment["content"], post_payload["content"])
         self.assertEqual(returned_comment["creationTimestamp"], post_payload["creationTimestamp"])
-        self.assertEqual(returned_comment["email"], post_payload["email"])
+        self.assertTrue('email' not in returned_comment, "Don't send email back to browser")
         self.assertEqual(returned_comment["id"], "1")
         self.assertEqual(returned_comment["path"], post_payload["path"])
         self.assertEqual(returned_comment["replyTo"], post_payload["replyTo"])

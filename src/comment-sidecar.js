@@ -2,7 +2,6 @@
     //TODO use iframe (sandbox) - https://blog.dareboost.com/en/2015/07/securing-iframe-sandbox-attribute/
     const commentArea = document.querySelector("#comment-sidecar");
     const createDOMForComment = comment => {
-        //TODO gravatar email. don't send email back to browser in GET!
         const postDiv = document.createElement('div');
         postDiv.setAttribute("class", "post");
         postDiv.innerHTML = `

@@ -49,7 +49,7 @@ function getCommentsAsJson() {
         throw new InvalidRequestException("Please submit both query parameters 'site' and 'path'");
     }
     $handler = connect();
-    $stmt = $handler->prepare("SELECT id, author, email, content, reply_to as replyTo, site, path, unix_timestamp(creation_date) as creationTimestamp FROM comments WHERE site = :site and path = :path ORDER BY creation_date desc;");
+    $stmt = $handler->prepare("SELECT id, author, content, reply_to as replyTo, site, path, unix_timestamp(creation_date) as creationTimestamp FROM comments WHERE site = :site and path = :path ORDER BY creation_date desc;");
     $stmt->bindParam(":site", $_GET['site']);
     $stmt->bindParam(":path", $_GET['path']);
     $stmt->execute();
