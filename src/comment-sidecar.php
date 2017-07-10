@@ -1,6 +1,6 @@
 <?php
 /**
- * REST API:
+ * HTTP endpoints
  * GET comment-sidecar.php?site=<site>&path=<path>
  * POST comment-sidecar.php with comment JSON
  */

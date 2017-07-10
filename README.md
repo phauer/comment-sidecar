@@ -37,7 +37,7 @@ http POST localhost/comment-sidecar.php < adhoc/comment-payload.json
 # develop in src/comment-sidecar.php. The changes take affect immediately. 
 ```
 
-## Run Python Test for the Backend
+## Run Python Tests for the Backend
 
 ```bash
 # start mysql database in docker container

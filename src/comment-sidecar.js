@@ -1,8 +1,7 @@
 (function() {
-    // TODO more real dummy data
     // TODO avatar
     // TODO form
-    const commentArea = document.querySelector("#comment-sidecar")
+    const commentArea = document.querySelector("#comment-sidecar");
     const handleComments = comments => {
         const heading = document.createElement("h1");
         heading.innerText = 'Comments';
