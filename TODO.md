@@ -7,6 +7,7 @@
 
 # prio 2
 
+- README: point to direct usage of ECMAScript 6
 - rate limit
 - multi-site support
     - CORS

@@ -1,4 +1,7 @@
 (function() {
+    // TODO more real dummy data
+    // TODO avatar
+    // TODO form
     const commentArea = document.querySelector("#comment-sidecar")
     const handleComments = comments => {
         const heading = document.createElement("h1");
@@ -12,13 +15,17 @@
             comments.forEach(drawDOMForComment);
         }
     };
+    const formatDate = timestamp => {
+        const date = new Date(timestamp * 1000);
+        return date.toString(); //convert to local timezone.
+    };
     const drawDOMForComment = comment => {
         const postDiv = document.createElement('div');
         postDiv.setAttribute("class", "post");
         postDiv.innerHTML = `
             <header class="post-header">
                 <span class="author">${comment.author}</span> 
-                <span class="date">${comment.creationTimestamp}</span>
+                <span class="date">${formatDate(comment.creationTimestamp)}</span>
             </header>
             <div class="post-content">${comment.content}</div>
         `;

@@ -1,0 +1,17 @@
+aside#comment-sidecar div.post {
+    margin: 15px 0px 15px 0px;
+}
+aside#comment-sidecar header.post-header{
+
+}
+aside#comment-sidecar span.author{
+    font-weight: bold;
+    margin-right: 10px;
+}
+aside#comment-sidecar span.date{
+    font-size: 90%;
+    color: gray;
+}
+aside#comment-sidecar div.post-content{
+    margin: 5px 0px 5px 0px;
+}
