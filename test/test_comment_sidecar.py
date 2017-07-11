@@ -4,6 +4,7 @@ import MySQLdb # sudo apt install libmysqlclient-dev python-dev && pip3 install 
 import requests # pip3 install requests
 import unittest
 import hashlib
+import time
 from path import Path # pip3 install path.py
 
 DEFAULT_PATH = "/blogpost1/"
@@ -46,8 +47,10 @@ class PlaylistTest(unittest.TestCase):
         self.assertEqual(response.text, '[]')
 
     def test_POST_and_GET_comment(self):
-        post_payload = create_payload()
+        post_payload = create_post_payload()
+        timestamp_before = int(time.time())
         post_response = requests.post(url=COMMENT_SIDECAR_URL, json=post_payload)
+        timestamp_after = int(time.time())
         self.assertEqual(post_response.status_code, 201)
         self.assertEqual(post_response.text, "")
 
@@ -59,20 +62,25 @@ class PlaylistTest(unittest.TestCase):
         returned_comment = comments_json[0]
         self.assertEqual(returned_comment["author"], post_payload["author"])
         self.assertEqual(returned_comment["content"], post_payload["content"])
-        self.assertEqual(returned_comment["creationTimestamp"], post_payload["creationTimestamp"])
         gravatar_url = create_gravatar_url(post_payload["email"])
         self.assertEqual(returned_comment["gravatarUrl"], gravatar_url)
+        self.assertTimestampBetween(returned_comment["creationTimestamp"], start=timestamp_before, end=timestamp_after)
         self.assertTrue('email' not in returned_comment, "Don't send the email back to browser")
         self.assertTrue('id' not in returned_comment, "Don't send the id to browser")
         self.assertTrue('path' not in returned_comment, "Don't send the path to browser")
         self.assertTrue('site' not in returned_comment, "Don't send the site to browser")
         self.assertTrue('replyTo' not in returned_comment, "Don't send the replyTo to browser")
 
+    def assertTimestampBetween(self, creation_timestamp: str, start: int, end: int):
+        timestamp = int(creation_timestamp)
+        self.assertGreaterEqual(timestamp, start)
+        self.assertLessEqual(timestamp, end)
+
     def test_GET_different_paths(self):
         path_with_two_comments = "/post1/"
         path_with_one_comment = "/post2/"
 
-        post_payload = create_payload()
+        post_payload = create_post_payload()
         post_payload['path'] = path_with_two_comments
         requests.post(url=COMMENT_SIDECAR_URL, json=post_payload)
         requests.post(url=COMMENT_SIDECAR_URL, json=post_payload)
@@ -91,7 +99,7 @@ class PlaylistTest(unittest.TestCase):
         site_with_two_comments = "mydomain2.com"
         site_with_one_comment = "mydomain1.com"
 
-        post_payload = create_payload()
+        post_payload = create_post_payload()
         post_payload['site'] = site_with_two_comments
         requests.post(url=COMMENT_SIDECAR_URL, json=post_payload)
         requests.post(url=COMMENT_SIDECAR_URL, json=post_payload)
@@ -106,18 +114,17 @@ class PlaylistTest(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.json()), 1)
 
+    # TODO test invalid POSTs/validation (missing props)
 
 def get_comments(site: str = DEFAULT_SITE, path: str = DEFAULT_PATH):
     return requests.get("{}?site={}&path={}".format(COMMENT_SIDECAR_URL, site, path))
 
-def create_payload():
+def create_post_payload():
     return {
         "author": "Peter",
         "content": "Peter's comment",
-        "creationTimestamp": "1499604757",
         "email": "peter@petersworld.com",
         "path": DEFAULT_PATH,
-        "replyTo": None,
         "site": DEFAULT_SITE
     }
 

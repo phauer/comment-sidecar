@@ -7,6 +7,9 @@
 
 # prio 2
 
+- security issues: global var commentSidecarSite and function submitComment. deliver a tailored js via another php-file.
+- reply (reintroduce id in GET and POST for each post; but nest reply in GET JSON/on server-side - so we can test it)
+- handle translation (especially form)
 - instead of display the whole (long) creation date, just say how much time has passed ("3 month ago"). 
 - README: point to direct usage of ECMAScript 6
 - rate limit

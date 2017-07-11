@@ -78,17 +78,20 @@ function createGravatarUrl($email) {
 
 function createComment() {
     $input = json_decode(file_get_contents('php://input'),true);
+    validatePostedComment($input);
     $handler = connect();
-    $stmt = $handler->prepare("INSERT INTO comments (author, email, content, reply_to, site, path, creation_date) VALUES (:author, :email, :content, :reply_to, :site, :path, from_unixtime(:creation_date_timestamp));");
+    $stmt = $handler->prepare("INSERT INTO comments (author, email, content, site, path, creation_date) VALUES (:author, :email, :content, :site, :path, now());");
     $stmt->bindParam(':author', $input["author"]);
     $stmt->bindParam(':email', $input["email"]);
     $stmt->bindParam(':content', $input["content"]);
-    $stmt->bindParam(':reply_to', $input["replyTo"]);
     $stmt->bindParam(':site', $input["site"]);
     $stmt->bindParam(':path', $input["path"]);
-    $stmt->bindParam(':creation_date_timestamp', $input["creationTimestamp"]);
     $stmt->execute();
     $handler = null; //close connection
+}
+
+function validatePostedComment($input){
+    //TODO validate input. test.
 }
 
 class InvalidRequestException extends Exception {}
