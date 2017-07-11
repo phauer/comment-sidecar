@@ -46,9 +46,8 @@ docker-compose up -d
 # set up python environment
 python3 --version # you need at least python 3.5 to run the tests
 sudo apt install python3-pip
-sudo apt install libmysqlclient-dev python-dev && pip3 install mysqlclient
-pip3 install requests
-pip3 install path.py
+sudo apt install libmysqlclient-dev python-dev 
+pip3 install mysqlclient requests path.py
 
 cd test
 ./test_comment_sidecar.py
