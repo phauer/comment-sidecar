@@ -7,6 +7,7 @@
 
 # prio 2
 
+- instead of display the whole (long) creation date, just say how much time has passed ("3 month ago"). 
 - README: point to direct usage of ECMAScript 6
 - rate limit
 - multi-site support

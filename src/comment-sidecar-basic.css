@@ -1,17 +1,23 @@
 aside#comment-sidecar div.post {
-    margin: 15px 0px 15px 0px;
+    margin: 35px 0px 15px 0px;
 }
-aside#comment-sidecar header.post-header{
-
+aside#comment-sidecar div.post-avatar{
+    float: left;
+    padding: 0px 5px 0px 5px;
 }
-aside#comment-sidecar span.author{
+aside#comment-sidecar div.post-body {
+    margin: 0px 0px 0px 65px;
+}
+aside#comment-sidecar div.post-body header.post-header{
+}
+aside#comment-sidecar div.post-body header.post-header span.post-author{
     font-weight: bold;
     margin-right: 10px;
 }
-aside#comment-sidecar span.date{
+aside#comment-sidecar div.post-body header.post-header span.post-date{
     font-size: 90%;
     color: gray;
 }
-aside#comment-sidecar div.post-content{
+aside#comment-sidecar div.post-body div.post-content{
     margin: 5px 0px 5px 0px;
 }

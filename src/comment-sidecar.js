@@ -22,11 +22,14 @@
         const postDiv = document.createElement('div');
         postDiv.setAttribute("class", "post");
         postDiv.innerHTML = `
-            <header class="post-header">
-                <span class="author">${comment.author}</span> 
-                <span class="date">${formatDate(comment.creationTimestamp)}</span>
-            </header>
-            <div class="post-content">${comment.content}</div>
+            <div class="post-avatar"><img src="${comment.gravatarUrl}?s=50&d=mm"/></div>
+            <div class="post-body">
+                <header class="post-header">
+                    <span class="post-author">${comment.author}</span> 
+                    <span class="post-date">${formatDate(comment.creationTimestamp)}</span>
+                </header>
+                <div class="post-content">${comment.content}</div>
+            </div>
         `;
         commentArea.appendChild(postDiv);
     };
