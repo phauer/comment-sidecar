@@ -49,14 +49,31 @@ function getCommentsAsJson() {
         throw new InvalidRequestException("Please submit both query parameters 'site' and 'path'");
     }
     $handler = connect();
-    $stmt = $handler->prepare("SELECT id, author, content, reply_to as replyTo, site, path, unix_timestamp(creation_date) as creationTimestamp FROM comments WHERE site = :site and path = :path ORDER BY creation_date desc;");
+    $stmt = $handler->prepare("SELECT id, author, content, email, reply_to, site, path, unix_timestamp(creation_date) as creationTimestamp FROM comments WHERE site = :site and path = :path ORDER BY creation_date desc;");
     $stmt->bindParam(":site", $_GET['site']);
     $stmt->bindParam(":path", $_GET['path']);
     $stmt->execute();
     $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    $json = json_encode($results);
+    $json = mapToJson($results);
     $handler = null; //close connection
     return $json;
+}
+
+function mapToJson($results) {
+    $json = array();
+    foreach ($results as $result) {
+        $json[] = array('author' => $result['author'],
+            'content' => $result['content'],
+            'creationTimestamp' => $result['creationTimestamp'],
+            'gravatarUrl' => createGravatarUrl($result['email'])
+        );
+    }
+    return json_encode($json);
+}
+
+function createGravatarUrl($email) {
+    $gravatarHash = md5(strtolower(trim($email)));
+    return "https://www.gravatar.com/avatar/$gravatarHash";
 }
 
 function createComment() {

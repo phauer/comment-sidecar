@@ -3,6 +3,7 @@
 import MySQLdb # sudo apt install libmysqlclient-dev python-dev && pip3 install mysqlclient
 import requests # pip3 install requests
 import unittest
+import hashlib
 from path import Path # pip3 install path.py
 
 DEFAULT_PATH = "/blogpost1/"
@@ -59,11 +60,13 @@ class PlaylistTest(unittest.TestCase):
         self.assertEqual(returned_comment["author"], post_payload["author"])
         self.assertEqual(returned_comment["content"], post_payload["content"])
         self.assertEqual(returned_comment["creationTimestamp"], post_payload["creationTimestamp"])
-        self.assertTrue('email' not in returned_comment, "Don't send email back to browser")
-        self.assertEqual(returned_comment["id"], "1")
-        self.assertEqual(returned_comment["path"], post_payload["path"])
-        self.assertEqual(returned_comment["replyTo"], post_payload["replyTo"])
-        self.assertEqual(returned_comment["site"], post_payload["site"])
+        gravatar_url = create_gravatar_url(post_payload["email"])
+        self.assertEqual(returned_comment["gravatarUrl"], gravatar_url)
+        self.assertTrue('email' not in returned_comment, "Don't send the email back to browser")
+        self.assertTrue('id' not in returned_comment, "Don't send the id to browser")
+        self.assertTrue('path' not in returned_comment, "Don't send the path to browser")
+        self.assertTrue('site' not in returned_comment, "Don't send the site to browser")
+        self.assertTrue('replyTo' not in returned_comment, "Don't send the replyTo to browser")
 
     def test_GET_different_paths(self):
         path_with_two_comments = "/post1/"
@@ -104,7 +107,7 @@ class PlaylistTest(unittest.TestCase):
         self.assertEqual(len(response.json()), 1)
 
 
-def get_comments(site=DEFAULT_SITE, path=DEFAULT_PATH):
+def get_comments(site: str = DEFAULT_SITE, path: str = DEFAULT_PATH):
     return requests.get("{}?site={}&path={}".format(COMMENT_SIDECAR_URL, site, path))
 
 def create_payload():
@@ -118,6 +121,10 @@ def create_payload():
         "site": DEFAULT_SITE
     }
 
+def create_gravatar_url(email: str) -> str:
+    md5 = hashlib.md5()
+    md5.update(email.strip().lower().encode())
+    return "https://www.gravatar.com/avatar/" + md5.hexdigest()
 
 if __name__ == '__main__':
     unittest.main()
