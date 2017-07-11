@@ -77,21 +77,30 @@ function createGravatarUrl($email) {
 }
 
 function createComment() {
-    $input = json_decode(file_get_contents('php://input'),true);
-    validatePostedComment($input);
+    $comment = json_decode(file_get_contents('php://input'),true);
+    validatePostedComment($comment);
     $handler = connect();
     $stmt = $handler->prepare("INSERT INTO comments (author, email, content, site, path, creation_date) VALUES (:author, :email, :content, :site, :path, now());");
-    $stmt->bindParam(':author', $input["author"]);
-    $stmt->bindParam(':email', $input["email"]);
-    $stmt->bindParam(':content', $input["content"]);
-    $stmt->bindParam(':site', $input["site"]);
-    $stmt->bindParam(':path', $input["path"]);
+    $stmt->bindParam(':author', $comment["author"]);
+    $stmt->bindParam(':email', $comment["email"]); // optional. can be null
+    $stmt->bindParam(':content', $comment["content"]);
+    $stmt->bindParam(':site', $comment["site"]);
+    $stmt->bindParam(':path', $comment["path"]);
     $stmt->execute();
     $handler = null; //close connection
 }
 
-function validatePostedComment($input){
-    //TODO validate input. test.
+function validatePostedComment($comment){
+    checkExistence($comment, 'author');
+    checkExistence($comment, 'content');
+    checkExistence($comment, 'site');
+    checkExistence($comment, 'path');
+}
+
+function checkExistence($comment, $field) {
+    if (!isset($comment[$field]) or empty(trim($comment[$field]))) {
+        throw new InvalidRequestException("$field is missing, empty or blank");
+    }
 }
 
 class InvalidRequestException extends Exception {}

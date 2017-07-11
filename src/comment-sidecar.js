@@ -21,6 +21,7 @@ function submitComment(){
         .catch(function(res){ console.log(res) });
     //TODO client-side validation
     //TODO after submission: clear and give feedback.
+    //TODO handle failed POST (!= 201)
     return false;
 }
 

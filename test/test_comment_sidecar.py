@@ -49,10 +49,10 @@ class PlaylistTest(unittest.TestCase):
     def test_POST_and_GET_comment(self):
         post_payload = create_post_payload()
         timestamp_before = int(time.time())
-        post_response = requests.post(url=COMMENT_SIDECAR_URL, json=post_payload)
+        response = post_comment(post_payload)
         timestamp_after = int(time.time())
-        self.assertEqual(post_response.status_code, 201)
-        self.assertEqual(post_response.text, "")
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.text, "")
 
         get_response = get_comments()
         self.assertEqual(get_response.status_code, 200)
@@ -71,21 +71,16 @@ class PlaylistTest(unittest.TestCase):
         self.assertTrue('site' not in returned_comment, "Don't send the site to browser")
         self.assertTrue('replyTo' not in returned_comment, "Don't send the replyTo to browser")
 
-    def assertTimestampBetween(self, creation_timestamp: str, start: int, end: int):
-        timestamp = int(creation_timestamp)
-        self.assertGreaterEqual(timestamp, start)
-        self.assertLessEqual(timestamp, end)
-
     def test_GET_different_paths(self):
         path_with_two_comments = "/post1/"
         path_with_one_comment = "/post2/"
 
         post_payload = create_post_payload()
         post_payload['path'] = path_with_two_comments
-        requests.post(url=COMMENT_SIDECAR_URL, json=post_payload)
-        requests.post(url=COMMENT_SIDECAR_URL, json=post_payload)
+        post_comment(post_payload)
+        post_comment(post_payload)
         post_payload['path'] = path_with_one_comment
-        requests.post(url=COMMENT_SIDECAR_URL, json=post_payload)
+        post_comment(post_payload)
 
         response = get_comments(path=path_with_two_comments)
         self.assertEqual(response.status_code, 200)
@@ -101,10 +96,10 @@ class PlaylistTest(unittest.TestCase):
 
         post_payload = create_post_payload()
         post_payload['site'] = site_with_two_comments
-        requests.post(url=COMMENT_SIDECAR_URL, json=post_payload)
-        requests.post(url=COMMENT_SIDECAR_URL, json=post_payload)
+        post_comment(post_payload)
+        post_comment(post_payload)
         post_payload['site'] = site_with_one_comment
-        requests.post(url=COMMENT_SIDECAR_URL, json=post_payload)
+        post_comment(post_payload)
 
         response = get_comments(site=site_with_two_comments)
         self.assertEqual(response.status_code, 200)
@@ -114,7 +109,59 @@ class PlaylistTest(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.json()), 1)
 
-    # TODO test invalid POSTs/validation (missing props)
+    def test_POST_without_optional_email(self):
+        post_payload = create_post_payload()
+        post_payload.pop('email')
+        response = post_comment(post_payload)
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.text, "")
+
+    def test_POST_missing_fields(self):
+        self.post_comment_with_missing_field_and_assert_error('author')
+        self.post_comment_with_missing_field_and_assert_error('content')
+        self.post_comment_with_missing_field_and_assert_error('site')
+        self.post_comment_with_missing_field_and_assert_error('path')
+
+    def test_POST_empty_fields(self):
+        self.post_comment_with_empty_field_and_assert_error('author')
+        self.post_comment_with_empty_field_and_assert_error('content')
+        self.post_comment_with_empty_field_and_assert_error('site')
+        self.post_comment_with_empty_field_and_assert_error('path')
+
+    def test_POST_blank_fields(self):
+        self.post_comment_with_blank_field_and_assert_error('author')
+        self.post_comment_with_blank_field_and_assert_error('content')
+        self.post_comment_with_blank_field_and_assert_error('site')
+        self.post_comment_with_blank_field_and_assert_error('path')
+
+    def post_comment_with_missing_field_and_assert_error(self, missing_field: str):
+        post_payload = create_post_payload()
+        post_payload.pop(missing_field)
+        response = post_comment(post_payload)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()['message'], missing_field + " is missing, empty or blank")
+
+    def post_comment_with_empty_field_and_assert_error(self, empty_field: str):
+        post_payload = create_post_payload()
+        post_payload[empty_field] = ""
+        response = post_comment(post_payload)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()['message'], empty_field + " is missing, empty or blank")
+
+    def post_comment_with_blank_field_and_assert_error(self, blank_field: str):
+        post_payload = create_post_payload()
+        post_payload[blank_field] = " "
+        response = post_comment(post_payload)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()['message'], blank_field + " is missing, empty or blank")
+
+    def assertTimestampBetween(self, creation_timestamp: str, start: int, end: int):
+        timestamp = int(creation_timestamp)
+        self.assertGreaterEqual(timestamp, start)
+        self.assertLessEqual(timestamp, end)
+
+def post_comment(post_payload):
+    return requests.post(url=COMMENT_SIDECAR_URL, json=post_payload)
 
 def get_comments(site: str = DEFAULT_SITE, path: str = DEFAULT_PATH):
     return requests.get("{}?site={}&path={}".format(COMMENT_SIDECAR_URL, site, path))
