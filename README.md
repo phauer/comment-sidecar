@@ -3,14 +3,14 @@
 
 # comment-sidecar
 
-comment-sidecar is a lightweight, tracking-free, self-hosted comment service. It aims at restricted web spaces where only PHP and MySQL are available. And it is easy to embed into statically generated sites that are created with Hugo or Jekyll.
+comment-sidecar is a **lightweight, tracking-free, self-hosted comment service**. It aims at restricted web spaces where only **PHP and MySQL** are available. And it is easy to embed into statically generated sites that are created with Hugo or Jekyll.
   
 # Planned Features
 
 - Tracking-free and fast. The comment-sidecar only needs one additional request. Contrary, Disqus leads to **110 additional requests**! Read [here](http://donw.io/post/github-comments/) for more details about Disqus' tracking greed and performance impact.
 - Privacy. Your data belongs to you.
 - Easy to integrate. Just a simple Javascript call. This makes is easy to use the comment-sidecar in conjunction with static site generators like **Hugo** or Jekyll. You don't have to integrate PHP code in the generated HTML files.
-- Lightweight: Zero Dependencies.
+- Lightweight: No additional PHP or JavaScript dependencies. Just drop the files on your web server and you are good to go.
 - No account required. The visitors of your side don't need to have an account to drop a comment.
 - No performance impact on TTFB (Time To First Byte), because the comments are loaded asynchronously.
 - Spam Protection.
@@ -19,6 +19,12 @@ comment-sidecar is a lightweight, tracking-free, self-hosted comment service. It
 - Markdown Support.
 - Use one comment-sidecar installation for multiple sites.
 - Replying to a comment is supported.
+
+# Requirements
+
+- PHP
+- A MySQL database
+- Some native [ECMAScript 6](http://es6-features.org/) support in the user's browser. For now, the comment-sidecar requires support for basic ECMAScript 6 features like [arrow functions](http://www.caniuse.com/#search=arrow), [`const`](http://www.caniuse.com/#search=const), [template literals](http://www.caniuse.com/#search=template) and other modern methods like [`querySelector()`](http://www.caniuse.com/#search=queryselector) and [`fetch()`](http://www.caniuse.com/#search=fetch). Currently, the supporting browser versions have a global usage of 73% - 98%. This was good enough for me. So I decided against a compilation with babel in order to avoid a dedicated build process. However, pull requests are always welcome. Alternatively, you can compile the `comment-sidecar.js` manually once only.
 
 # Development
 
