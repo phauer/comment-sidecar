@@ -21,3 +21,18 @@ aside#comment-sidecar div.cs-body header.cs-header span.cs-date{
 aside#comment-sidecar div.cs-body div.post-content{
     margin: 5px 0px 5px 0px;
 }
+aside#comment-sidecar form p.cs-form-message {
+    font-weight: bold;
+    font-size: 110%;
+    margin-top: 10px;
+    line-height: 30px;
+    display: none;
+}
+aside#comment-sidecar form p.cs-form-message.success {
+    color: darkgreen;
+    display: block;
+}
+aside#comment-sidecar form p.cs-form-message.fail {
+    color: darkred;
+    display: block;
+}
