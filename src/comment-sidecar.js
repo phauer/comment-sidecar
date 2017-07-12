@@ -9,7 +9,7 @@
             element.classList.remove("fail");
             element.classList.add("success");
 
-            reloadComments();
+            refresh();
         } else {
             const element = document.querySelector(".cs-form-message");
             response.json().then(json => {
@@ -59,20 +59,20 @@
             .then(handleResponse);
         return false;
     }
-    function createDOMForComments(comments) {
+    function createNodesForComments(comments) {
         if (comments.length === 0){
             const heading = document.createElement("p");
             heading.innerText = 'No comments yet. Be the first!';
             return [heading];
         } else {
-            return comments.map(createDOMForComment);
+            return comments.map(createNodeForComment);
         }
     }
     function formatDate(timestamp) {
         const date = new Date(timestamp * 1000);
         return date.toString(); //convert to local timezone.
     }
-    function createDOMForComment(comment) {
+    function createNodeForComment(comment) {
         const postDiv = document.createElement('div');
         postDiv.setAttribute("class", "cs-post");
         postDiv.innerHTML = `
@@ -87,7 +87,7 @@
         `;
         return postDiv;
     }
-    function createFormDOM() {
+    function createFormNode() {
         const div = document.createElement('div');
         div.setAttribute("class", "cs-form");
         div.innerHTML = `
@@ -119,18 +119,23 @@
         const path = encodeURIComponent(location.pathname);
         return fetch(`/comment-sidecar.php?site=${commentSidecarSite}&path=${path}`)
             .then(response => response.json())
-            .then(createDOMForComments);
+            .then(createNodesForComments);
     }
 
-    const commentArea = document.querySelector("#comment-sidecar");
+    const commentAreaNode = document.querySelector("#comment-sidecar");
+    commentAreaNode.innerHTML = `<h1>Comments</h1>`;
 
-    const heading = document.createElement("h1");
-    heading.innerText = 'Comments';
-    commentArea.appendChild(heading);
+    commentAreaNode.appendChild(createFormNode());
 
-    commentArea.appendChild(createFormDOM());
+    const commentListNode = document.createElement("div");
+    commentListNode.className = 'cs-comment-list';
+    commentAreaNode.appendChild(commentListNode);
 
-    loadComments().then(commentDomNodes => {
-        commentDomNodes.forEach(node => commentArea.appendChild(node));
-    });
+    const refresh = () => {
+        commentListNode.innerHTML = '';
+        loadComments().then(commentDomNodes => {
+            commentDomNodes.forEach(node => commentListNode.appendChild(node));
+        });
+    };
+    refresh();
 })();
