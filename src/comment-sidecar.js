@@ -8,6 +8,8 @@
             element.innerText = "Successfully submitted comment.";
             element.classList.remove("fail");
             element.classList.add("success");
+
+            reloadComments();
         } else {
             const element = document.querySelector(".cs-form-message");
             response.json().then(json => {
@@ -57,20 +59,20 @@
             .then(handleResponse);
         return false;
     }
-    function handleComments(comments) {
+    function createDOMForComments(comments) {
         if (comments.length === 0){
             const heading = document.createElement("p");
             heading.innerText = 'No comments yet. Be the first!';
-            commentArea.appendChild(heading);
+            return [heading];
         } else {
-            comments.forEach(drawDOMForComment);
+            return comments.map(createDOMForComment);
         }
     }
     function formatDate(timestamp) {
         const date = new Date(timestamp * 1000);
         return date.toString(); //convert to local timezone.
     }
-    function drawDOMForComment(comment) {
+    function createDOMForComment(comment) {
         const postDiv = document.createElement('div');
         postDiv.setAttribute("class", "cs-post");
         postDiv.innerHTML = `
@@ -83,7 +85,7 @@
                 <div class="cs-content">${comment.content}</div>
             </div>
         `;
-        commentArea.appendChild(postDiv);
+        return postDiv;
     }
     function createFormDOM() {
         const div = document.createElement('div');
@@ -113,6 +115,13 @@
         div.querySelector("button").onclick = submitComment;
         return div;
     }
+    function loadComments(){
+        const path = encodeURIComponent(location.pathname);
+        return fetch(`/comment-sidecar.php?site=${commentSidecarSite}&path=${path}`)
+            .then(response => response.json())
+            .then(createDOMForComments);
+    }
+
     const commentArea = document.querySelector("#comment-sidecar");
 
     const heading = document.createElement("h1");
@@ -121,8 +130,7 @@
 
     commentArea.appendChild(createFormDOM());
 
-    const path = encodeURIComponent(location.pathname);
-    fetch(`/comment-sidecar.php?site=${commentSidecarSite}&path=${path}`)
-        .then(response => response.json())
-        .then(handleComments);
+    loadComments().then(commentDomNodes => {
+        commentDomNodes.forEach(node => commentArea.appendChild(node));
+    });
 })();
