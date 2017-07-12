@@ -134,6 +134,20 @@ class PlaylistTest(unittest.TestCase):
         self.post_comment_with_blank_field_and_assert_error('site')
         self.post_comment_with_blank_field_and_assert_error('path')
 
+    def test_POST_spam_protection_set_url_is_spam(self):
+        post_payload = create_post_payload()
+        post_payload['url'] = 'http://only.spambots.will/populate/this/field/'
+        response = post_comment(post_payload)
+        self.assertEqual(response.status_code, 400, "POST payload with an URL field should be rejected. The URL an hidden form field and used for spam protection.")
+        self.assertEqual(response.json()['message'], "")
+
+    def test_POST_spam_protection_empty_url_is_fine(self):
+        post_payload = create_post_payload()
+        post_payload['url'] = ""
+        response = post_comment(post_payload)
+        self.assertEqual(response.status_code, 201, "POST payload with an empty URL field is fine.")
+        self.assertEqual(response.text, "")
+
     def post_comment_with_missing_field_and_assert_error(self, missing_field: str):
         post_payload = create_post_payload()
         post_payload.pop(missing_field)

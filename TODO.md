@@ -1,6 +1,5 @@
 # prio 1 
 
-- frontend
 - email notification. 
     - set up dockerized env: https://github.com/docker-library/php/issues/135
 - document and simplify configuration and setup (table creation script; where to put db credentials)
@@ -32,6 +31,7 @@
 
 # ideas: security means and spam protection
 
+- spam bot protection using a honeypot field in the HTML form
 - usage of PDO's prepared statements (sql injection)
 - rate limit: put ip with timestamp into php cache (spam; DoS)
 - frontend: no form action in HTML. no form-encoded http request. custom ajax request and js payload (spam bots)

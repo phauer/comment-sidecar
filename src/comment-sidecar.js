@@ -37,12 +37,14 @@
         const author = document.querySelector("#cs-author").value;
         const email = document.querySelector("#cs-email").value;
         const content = document.querySelector("#cs-content").value;
+        const url = document.querySelector("#cs-url").value;
         const payload = {
             author: author,
             email: email,
             content: content,
             site: commentSidecarSite,
-            path: location.pathname
+            path: location.pathname,
+            url: url
         };
         fetch("/comment-sidecar.php",
             {
@@ -89,15 +91,19 @@
         div.innerHTML = `
             <form>
               <div class="form-group">
-                <label for="author" class="control-label">Name:</label>
+                <label for="cs-author" class="control-label">Name:</label>
                 <input type="text" class="form-control" id="cs-author" placeholder="Name">
               </div>
               <div class="form-group">
-                <label for="email" class="control-label">E-Mail:</label>
+                <label for="cs-email" class="control-label">E-Mail:</label>
                 <input type="email" class="form-control" id="cs-email" placeholder="E-Mail (won't be not published; Gravatar supported)">
               </div>
+              <div class="form-group cs-url-group">
+                <label for="cs-url" class="control-label">URL:</label>
+                <input type="url" id="cs-url" name="url" placeholder="URL">
+              </div>
               <div class="form-group">
-                <label for="content" class="control-label">Comment:</label>
+                <label for="cs-content" class="control-label">Comment:</label>
                 <textarea class="form-control" id="cs-content" placeholder="Your Comment..." rows="7"></textarea>
               </div>
               <button type="submit" class="btn btn-primary">Submit</button>

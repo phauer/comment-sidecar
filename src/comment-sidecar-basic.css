@@ -36,3 +36,6 @@ aside#comment-sidecar form p.cs-form-message.fail {
     color: darkred;
     display: block;
 }
+aside#comment-sidecar form .cs-url-group {
+    display: none;
+}

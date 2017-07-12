@@ -78,6 +78,7 @@ function createGravatarUrl($email) {
 
 function createComment() {
     $comment = json_decode(file_get_contents('php://input'),true);
+    checkForSpam($comment);
     validatePostedComment($comment);
     $handler = connect();
     $stmt = $handler->prepare("INSERT INTO comments (author, email, content, site, path, creation_date) VALUES (:author, :email, :content, :site, :path, now());");
@@ -88,6 +89,12 @@ function createComment() {
     $stmt->bindParam(':path', $comment["path"]);
     $stmt->execute();
     $handler = null; //close connection
+}
+
+function checkForSpam($comment) {
+    if (isset($comment['url']) and !empty(trim($comment['url']))) {
+       throw new InvalidRequestException("");
+    }
 }
 
 function validatePostedComment($comment){
