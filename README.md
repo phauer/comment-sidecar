@@ -36,7 +36,7 @@ docker-compose up
 
 This starts a MySQL database (which already contains the required table and index), MailHog (a test mail server) and an Apache with PHP.
 
-Now open [`http://localhost/playground.html`](http://localhost/playground.html) in your browser and play with the comment-sidecar in action. On [`http://localhost:8025/]`(http://localhost:8025/) you can see the send notification mails.
+Now open [`http://localhost/playground.html`](http://localhost/playground.html) in your browser and play with the comment-sidecar in action. On [`http://localhost:8025/`](http://localhost:8025/) you can see the send notification mails.
 
 # Installation
 
