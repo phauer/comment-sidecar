@@ -28,13 +28,13 @@ comment-sidecar is a **lightweight, tracking-free, self-hosted comment service**
 
 # Try it out up front!
 
-Do you want to try the comment-sidecar before you install it on your side? No problem! You only need Docker and Docker-Compose and your are ready to go.
+Do you want to try the comment-sidecar before you install it on your site? No problem! You only need Docker and Docker-Compose and your are ready to go.
  
 ```bash
 docker-compose up
 ```
 
-This starts a MySQL database (which already contains the required table and index), MailHog (a test mail server) and an Apache with PHP.
+This starts a MySQL database (which already contains the required table and index), [MailHog](https://github.com/mailhog/MailHog) (a test mail server) and an Apache with PHP.
 
 Now open [`http://localhost/playground.html`](http://localhost/playground.html) in your browser and play with the comment-sidecar in action. On [`http://localhost:8025/`](http://localhost:8025/) you can see the send notification mails.
 
@@ -98,19 +98,17 @@ A complete example for the frontend can be found in [`src/playground.html`](http
 ## PHP Backend Service
 
 ```bash
-# start apache with php, mysql database and mailhog in docker containers
+# start apache with php, mysql database (with the required table) and mailhog in docker containers
 docker-compose up -d
 
-# create the table 'comments'. either execute test/create-comments-table.sql manually or execute the tests (see below)
-
 # now you can execute HTTP requests like
-http localhost/comment-sidecar.php
-http POST localhost/comment-sidecar.php < adhoc/comment-payload.json
+http http://localhost/comment-sidecar.php
+http POST http://localhost/comment-sidecar.php < adhoc/comment-payload.json
 
 # develop in src/comment-sidecar.php. The changes take affect immediately. 
 ```
 
-## Run Python Tests for the Backend
+## Run the Python Tests for the Backend
 
 ```bash
 # start mysql database and mailhog in docker containers
@@ -118,8 +116,7 @@ docker-compose up -d
 
 # set up python environment
 python3 --version # you need at least python 3.5 to run the tests
-sudo apt install python3-pip
-sudo apt install libmysqlclient-dev python-dev 
+sudo apt install python3-pip libmysqlclient-dev python-dev
 pip3 install mysqlclient requests path.py
 
 cd test
@@ -128,4 +125,4 @@ cd test
 
 ## See the Send Mails
 
-[MailHog](https://github.com/mailhog/MailHog) provides a neat Web UI. Just open [`http://localhost:8025/`](http://localhost:8025/) after calling `docker-compose up`.
+MailHog provides a neat Web UI. Just open [`http://localhost:8025/`](http://localhost:8025/) after calling `docker-compose up`.
