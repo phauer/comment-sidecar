@@ -36,7 +36,7 @@ docker-compose up
 
 This starts a MySQL database (which already contains the required table and index), MailHog (a test mail server) and an Apache with PHP.
 
-Now open `http://localhost/playground.html` in your browser and play with the comment-sidecar in action. On `http://localhost:8025/` you can see the send notification mails.
+Now open [`http://localhost/playground.html`](http://localhost/playground.html) in your browser and play with the comment-sidecar in action. On [`http://localhost:8025/]`(http://localhost:8025/) you can see the send notification mails.
 
 # Installation
 
@@ -46,15 +46,15 @@ comment-sidecar is made up of 3 parts:
 
 - `src/comment-sidecar.php`: The backend service. The frontend retrieves and sends comment to this php file. The service stores the comments in a MySQL database and sends E-Mail notifications.
 - `src/comment-sidecar.js`: This script is embedded in your site. It displays the comments retrieved from the backend and provides a from to submit new comments.
-- `src/comment-sidecar.css` provide some basic styling. Optional.
+- `src/comment-sidecar-basic.css` provide some basic styling. Optional.
 
 ## Installation Steps 
 
 Create a MySQL database and note the credentials. 
 
-Create the required table and the index. Therefore, execute the SQL statements in  [`test/create-comments-table.sql`](https://github.com/phauer/comment-sidecar/blob/master/test/create-comments-table.sql) 
+Create the required table and the index. Therefore, execute the SQL statements in  [`sql/create-comments-table.sql`](https://github.com/phauer/comment-sidecar/blob/master/sql/create-comments-table.sql) 
 
-Copy `src/comment-sidecar.php`, `src/comment-sidecar.js` to your webspace. You can put it wherever you like. Just remember the path.
+Copy `src/comment-sidecar.php` and `src/comment-sidecar.js` to your webspace. You can put it wherever you like. Just remember the path. The following example assumes that you put both files in the root directory `/`.
 
 Open `comment-sidecar.php` and configure your E-Mail and the database connection:
 
@@ -128,4 +128,4 @@ cd test
 
 ## See the Send Mails
 
-[MailHog](https://github.com/mailhog/MailHog) provides a neat Web UI. Just open `localhost:8025` after calling `docker-compose up`.
+[MailHog](https://github.com/mailhog/MailHog) provides a neat Web UI. Just open [`http://localhost:8025/`](http://localhost:8025/) after calling `docker-compose up`.
