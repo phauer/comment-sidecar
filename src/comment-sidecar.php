@@ -1,12 +1,17 @@
 <?php
+
+const E_MAIL_FOR_NOTIFICATIONS = "test@localhost.de";
+const DB_HOST = 'commentsidecar_mysql_1';
+const DB_NAME = 'comment-sidecar';
+const DB_USER = 'root';
+const DB_PW = 'root';
+const DB_PORT = 3306;
+
 /**
  * HTTP endpoints
  * GET comment-sidecar.php?site=<site>&path=<path>
  * POST comment-sidecar.php with comment JSON
  */
-
-const E_MAIL_FOR_NOTIFICATIONS = "test@localhost.de";
-
 function main() {
     $method = $_SERVER['REQUEST_METHOD'];
     header('Content-Type: application/json');
@@ -36,13 +41,7 @@ function main() {
 }
 
 function connect() {
-    //docker-compose creates links and adds entries to /etc/hosts -> use "commentsidecar_mysql_1" instead of "localhost"
-    $dbhost = 'commentsidecar_mysql_1';
-    $dbname = 'comment-sidecar';
-    $dbuser = 'root';
-    $dbpw = 'root';
-    $dbport = 3306;
-    $handler = new PDO("mysql:host=$dbhost:$dbport;dbname=$dbname", $dbuser, $dbpw);
+    $handler = new PDO("mysql:host=".DB_HOST.":".DB_PORT.";dbname=".DB_NAME, DB_USER, DB_PW);
     $handler->setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION );
     return $handler;
 }

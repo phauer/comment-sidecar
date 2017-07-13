@@ -1,4 +1,6 @@
 (function() {
+    const BASE_PATH = "/comment-sidecar.php";
+
     function handleResponse(response) {
         if (response.status === 201) {
             const inputs = document.querySelectorAll("div.cs-form .form-control");
@@ -48,7 +50,7 @@
             path: location.pathname,
             url: url
         };
-        fetch("/comment-sidecar.php",
+        fetch(BASE_PATH,
             {
                 headers: {
                     'Content-Type': 'application/json'
@@ -117,7 +119,7 @@
     }
     function loadComments(){
         const path = encodeURIComponent(location.pathname);
-        return fetch(`/comment-sidecar.php?site=${commentSidecarSite}&path=${path}`)
+        return fetch(`${BASE_PATH}?site=${commentSidecarSite}&path=${path}`)
             .then(response => response.json())
             .then(createNodesForComments);
     }

@@ -1,9 +1,3 @@
-# prio 1 
-
-- document and simplify configuration and setup (table creation script; where to put db credentials)
-
-# prio 2
-
 - handle translation (especially form)
 - rate limit
 - reply (reintroduce id in GET and POST for each post; but nest reply in GET JSON/on server-side - so we can test it)
