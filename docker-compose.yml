@@ -1,11 +1,9 @@
 version: '2'
 services:
   apache_with_php:
-#    image: php:7.0.19-apache
     build: .
     volumes:
       - ./src:/var/www/html/
-#      - ./apache-config/httpd.conf:/usr/local/apache2/conf/httpd.conf
     ports:
       - "80:80"
   mysql:
@@ -17,3 +15,8 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: "root"
       MYSQL_DATABASE: "comment-sidecar"
+  mailhog:
+      image: mailhog/mailhog:v1.0.0
+      ports:
+        - "1025:1025"
+        - "8025:8025"
