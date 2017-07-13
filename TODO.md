@@ -1,7 +1,5 @@
 # prio 1 
 
-- email notification. 
-    - set up dockerized env: https://github.com/docker-library/php/issues/135
 - document and simplify configuration and setup (table creation script; where to put db credentials)
 
 # prio 2

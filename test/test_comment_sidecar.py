@@ -11,6 +11,8 @@ DEFAULT_PATH = "/blogpost1/"
 DEFAULT_SITE = "petersworld.com"
 INVALID_QUERY_PARAMS = "Please submit both query parameters 'site' and 'path'"
 COMMENT_SIDECAR_URL = 'http://localhost/comment-sidecar.php'
+MAILHOG_BASE_URL = 'http://localhost:8025/api/'
+MAILHOG_MESSAGES_URL = MAILHOG_BASE_URL + 'v2/messages'
 
 class PlaylistTest(unittest.TestCase):
     def setUp(self):
@@ -141,12 +143,47 @@ class PlaylistTest(unittest.TestCase):
         self.assertEqual(response.status_code, 400, "POST payload with an URL field should be rejected. The URL an hidden form field and used for spam protection.")
         self.assertEqual(response.json()['message'], "")
 
+    def test_email_notification_after_successful_POST(self):
+        self.clear_mails()
+
+        post_payload = create_post_payload()
+        post_comment(post_payload)
+
+        json = requests.get(MAILHOG_MESSAGES_URL).json()
+        self.assertEqual(json['total'], 1)
+        mail_content = json['items'][0]['Content']
+        mail_body = mail_content['Body']
+        self.assertIn(post_payload['site'], mail_body)
+        self.assertIn(post_payload['path'], mail_body)
+        self.assertIn(post_payload['content'], mail_body)
+        headers = mail_content['Headers']
+        self.assertEqual(headers['Content-Transfer-Encoding'][0], '8bit')
+        self.assertEqual(headers['Content-Type'][0], 'text/plain; charset=UTF-8')
+        self.assertEqual(headers['Mime-Version'][0], '1.0')
+        self.assertEqual(headers['From'][0], '{}<{}>'.format(post_payload['author'], post_payload['email']))
+        self.assertEqual(headers['Subject'][0], 'Comment by {} on {}'.format(post_payload['author'], post_payload['path']))
+        self.assertEqual(headers['To'][0], 'test@localhost.de')
+
+    def test_no_email_notification_after_invalid_POST(self):
+        self.clear_mails()
+
+        post_payload = create_post_payload()
+        post_payload.pop('author')
+        post_comment(post_payload)
+
+        json = requests.get(MAILHOG_MESSAGES_URL).json()
+        self.assertEqual(json['total'], 0)
+
     def test_POST_spam_protection_empty_url_is_fine(self):
         post_payload = create_post_payload()
         post_payload['url'] = ""
         response = post_comment(post_payload)
         self.assertEqual(response.status_code, 201, "POST payload with an empty URL field is fine.")
         self.assertEqual(response.text, "")
+
+    def clear_mails(self):
+        response = requests.delete(MAILHOG_BASE_URL + 'v1/messages')
+        self.assertEqual(response.status_code, 200, "Test setup failed: Couldn't delete mails in mailhog.")
 
     def post_comment_with_missing_field_and_assert_error(self, missing_field: str):
         post_payload = create_post_payload()
@@ -193,6 +230,7 @@ def create_gravatar_url(email: str) -> str:
     md5 = hashlib.md5()
     md5.update(email.strip().lower().encode())
     return "https://www.gravatar.com/avatar/" + md5.hexdigest()
+
 
 if __name__ == '__main__':
     unittest.main()

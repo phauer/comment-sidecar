@@ -5,6 +5,8 @@
  * POST comment-sidecar.php with comment JSON
  */
 
+const E_MAIL_FOR_NOTIFICATIONS = "test@localhost.de";
+
 function main() {
     $method = $_SERVER['REQUEST_METHOD'];
     header('Content-Type: application/json');
@@ -15,7 +17,9 @@ function main() {
                 break;
             }
             case 'POST': {
-                createComment();
+                $comment = json_decode(file_get_contents('php://input'),true);
+                createComment($comment);
+                sendNotificationViaMail($comment);
                 http_response_code(201);
                 break;
             }
@@ -76,8 +80,7 @@ function createGravatarUrl($email) {
     return "https://www.gravatar.com/avatar/$gravatarHash";
 }
 
-function createComment() {
-    $comment = json_decode(file_get_contents('php://input'),true);
+function createComment($comment) {
     checkForSpam($comment);
     validatePostedComment($comment);
     $handler = connect();
@@ -108,6 +111,26 @@ function checkExistence($comment, $field) {
     if (!isset($comment[$field]) or empty(trim($comment[$field]))) {
         throw new InvalidRequestException("$field is missing, empty or blank");
     }
+}
+
+function sendNotificationViaMail($comment) {
+    $author = $comment['author'];
+    $headers = "From: $author<${comment['email']}>\n";
+    $headers .= "Mime-Version: 1.0\n";
+    $headers .= "Content-Type: text/plain; charset=UTF-8\n";
+    $headers .= "Content-Transfer-Encoding: 8bit\n";
+    $headers .= "X-Mailer: PHP ".phpversion();
+
+    $path = $comment["path"];
+    $site = $comment["site"];
+    $message = "
+    Site: $site
+    Path: $path
+    Message: ${comment["content"]}
+    ";
+
+    $subject = "Comment by $author on $path";
+    mail(E_MAIL_FOR_NOTIFICATIONS, $subject, $message, $headers);
 }
 
 class InvalidRequestException extends Exception {}

@@ -31,7 +31,7 @@ comment-sidecar is a **lightweight, tracking-free, self-hosted comment service**
 ## PHP Backend Service
 
 ```bash
-# start apache with php and mysql database in docker containers
+# start apache with php, mysql database and mailhog in docker containers
 docker-compose up -d
 
 # create the table 'comments'. either execute test/create-comments-table.sql manually or execute the tests (see below)
@@ -46,7 +46,7 @@ http POST localhost/comment-sidecar.php < adhoc/comment-payload.json
 ## Run Python Tests for the Backend
 
 ```bash
-# start mysql database in docker container
+# start mysql database and mailhog in docker containers
 docker-compose up -d
 
 # set up python environment
@@ -58,3 +58,7 @@ pip3 install mysqlclient requests path.py
 cd test
 ./test_comment_sidecar.py
 ```
+
+## See the Send Mails
+
+MailHog provides a neat Web UI. Just open `localhost:8025` after calling `docker-compose up`.
