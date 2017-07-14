@@ -11,6 +11,8 @@
     - security: check referer (browser ensures this even for AJAX requests)
 - pagination
 - check xss 
+- tests for:
+    - js-delivery
 - db:
     - index correctly used? use `explain`.
     - insert with different timezone? -> insert as unix timestamp not as string

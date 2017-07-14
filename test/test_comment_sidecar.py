@@ -73,6 +73,20 @@ class CommentSidecarTest(unittest.TestCase):
         self.assertTrue('site' not in returned_comment, "Don't send the site to browser")
         self.assertTrue('replyTo' not in returned_comment, "Don't send the replyTo to browser")
 
+    def test_POST_and_GET_comment_with_german_umlauts(self):
+        post_payload = create_post_payload()
+        post_payload['content'] = "äöüß - Deutsche Umlaute? Kein Problem für utf-8! ÖÄÜ"
+        post_payload['author'] = "öäüßÖÄÜ"
+        response = post_comment(post_payload)
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.text, "")
+
+        get_response = get_comments()
+        self.assertEqual(get_response.status_code, 200)
+        returned_comment = get_response.json()[0]
+        self.assertEqual(returned_comment["author"], post_payload["author"])
+        self.assertEqual(returned_comment["content"], post_payload["content"])
+
     def test_GET_different_paths(self):
         path_with_two_comments = "/post1/"
         path_with_one_comment = "/post2/"
