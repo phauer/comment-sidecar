@@ -1,6 +1,7 @@
 - rate limit
 - support reply to a comment (reintroduce id in GET and POST for each post; but nest reply in GET JSON/on server-side - so we can test it)
-- watch comments -> email notifications or get notified if someone replies to my comment 
+- watch comments -> get notified if someone replies to my comment
+    - add hint about this in the email field. "not published, but used for notification on replies and to display a gravatar avatar"
 - instead of display the whole (long) creation date, just say how much time has passed ("3 month ago"). 
 - multi-site support
     - CORS
@@ -19,6 +20,7 @@
     - moreover, only trash comments (set state to trashed/deleted). don't really delete it from db. reduces effects of an attack.
 - unrelated:
     - md5 is very unsafe. use a spam email for gravatar! 
+- make file to automate test execution and zipping of the relevant files 
 
 # ideas: security means and spam protection
 
