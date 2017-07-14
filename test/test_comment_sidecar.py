@@ -14,7 +14,7 @@ COMMENT_SIDECAR_URL = 'http://localhost/comment-sidecar.php'
 MAILHOG_BASE_URL = 'http://localhost:8025/api/'
 MAILHOG_MESSAGES_URL = MAILHOG_BASE_URL + 'v2/messages'
 
-class PlaylistTest(unittest.TestCase):
+class CommentSidecarTest(unittest.TestCase):
     def setUp(self):
         # first, run `docker-compose up`
         db = MySQLdb.connect(host='127.0.0.1', port=3306, user='root', passwd='root', db='comment-sidecar')

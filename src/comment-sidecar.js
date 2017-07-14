@@ -7,7 +7,7 @@
             inputs.forEach(input => input.value = "");
 
             const element = document.querySelector(".cs-form-message");
-            element.innerText = "Successfully submitted comment.";
+            element.innerText = "{{successMessage}}";
             element.classList.remove("fail");
             element.classList.add("success");
 
@@ -15,7 +15,7 @@
         } else {
             const element = document.querySelector(".cs-form-message");
             response.json().then(json => {
-                element.innerText = `Couldn't submit your comment. Reason: ${json['message']}`;
+                element.innerText = `{{failMessage}} ${json['message']}`;
             });
             element.classList.remove("success");
             element.classList.add("fail");
@@ -64,7 +64,7 @@
     function createNodesForComments(comments) {
         if (comments.length === 0){
             const heading = document.createElement("p");
-            heading.innerText = 'No comments yet. Be the first!';
+            heading.innerText = '{{noCommentsYet}}';
             return [heading];
         } else {
             return comments.map(createNodeForComment);
@@ -95,23 +95,23 @@
         div.innerHTML = `
             <form>
               <div class="form-group">
-                <label for="cs-author" class="control-label">Name:</label>
-                <input type="text" class="form-control" id="cs-author" placeholder="Name">
+                <label for="cs-author" class="control-label">{{name}}:</label>
+                <input type="text" class="form-control" id="cs-author">
               </div>
               <div class="form-group">
-                <label for="cs-email" class="control-label">E-Mail:</label>
-                <input type="email" class="form-control" id="cs-email" placeholder="E-Mail (won't be not published; Gravatar supported)">
+                <label for="cs-email" class="control-label">{{email}}:</label>
+                <input type="email" class="form-control" id="cs-email" placeholder="{{emailHint}}">
               </div>
               <div class="form-group cs-url-group">
                 <label for="cs-url" class="control-label">URL:</label>
                 <input type="url" id="cs-url" name="url" placeholder="URL">
               </div>
               <div class="form-group">
-                <label for="cs-content" class="control-label">Comment:</label>
-                <textarea class="form-control" id="cs-content" placeholder="Your Comment..." rows="7"></textarea>
+                <label for="cs-content" class="control-label">{{comment}}:</label>
+                <textarea class="form-control" id="cs-content" rows="7"></textarea>
               </div>
-              <button type="submit" class="btn btn-primary">Submit</button>
-              <p class="cs-form-message">Message!</p>
+              <button type="submit" class="btn btn-primary">{{submit}}</button>
+              <p class="cs-form-message"></p>
             </form>
         `;
         div.querySelector("button").onclick = submitComment;
@@ -125,7 +125,7 @@
     }
 
     const commentAreaNode = document.querySelector("#comment-sidecar");
-    commentAreaNode.innerHTML = `<h1>Comments</h1>`;
+    commentAreaNode.innerHTML = `<h1>{{comments}}</h1>`;
 
     commentAreaNode.appendChild(createFormNode());
 
