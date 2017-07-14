@@ -1,5 +1,6 @@
 (function() {
-    const BASE_PATH = "/comment-sidecar.php";
+    const BASE_PATH = "{{BASE_PATH}}";
+    const SITE = "{{SITE}}";
 
     function handleResponse(response) {
         if (response.status === 201) {
@@ -46,7 +47,7 @@
             author: author,
             email: email,
             content: content,
-            site: commentSidecarSite,
+            site: SITE,
             path: location.pathname,
             url: url
         };
@@ -119,7 +120,7 @@
     }
     function loadComments(){
         const path = encodeURIComponent(location.pathname);
-        return fetch(`${BASE_PATH}?site=${commentSidecarSite}&path=${path}`)
+        return fetch(`${BASE_PATH}?site=${SITE}&path=${path}`)
             .then(response => response.json())
             .then(createNodesForComments);
     }

@@ -40,56 +40,42 @@ Now open [`http://localhost/playground.html`](http://localhost/playground.html) 
 
 # Installation
 
-## Structure
-
-comment-sidecar is made up of 3 parts:
-
-- `src/comment-sidecar.php`: The backend service. The frontend retrieves and sends comment to this php file. The service stores the comments in a MySQL database and sends E-Mail notifications.
-- `src/comment-sidecar.js`: This script is embedded in your site. It displays the comments retrieved from the backend and provides a from to submit new comments.
-- `src/comment-sidecar-basic.css` provide some basic styling. Optional.
-
-## Installation Steps 
-
 Create a MySQL database and note the credentials. 
 
 Create the required table and the index. Therefore, execute the SQL statements in  [`sql/create-comments-table.sql`](https://github.com/phauer/comment-sidecar/blob/master/sql/create-comments-table.sql) 
 
-Copy `src/comment-sidecar.php` and `src/comment-sidecar.js` to your webspace. You can put it wherever you like. Just remember the path. The following example assumes that you put both files in the root directory `/`.
+Copy whole content of the `src` directory (except `playground.html`) to your webspace. You can put it wherever you like. Just remember the path. The following example assumes that all files are put in the root directory `/`.
 
-Open `comment-sidecar.php` and configure your E-Mail and the database connection:
+Open `comment-sidecar-config.php` and configure it:
 
 ```php
+<?php
+const LANGUAGE = "en"; # see translations folder for supported languages
+const SITE = "domain.com"; # key for this site to identity comment of this site
 const E_MAIL_FOR_NOTIFICATIONS = "your.email@domain.com";
-const DB_HOST = 'localhost';
+const DB_HOST = 'localhost'; # to access from host system, use 127.0.0.1
 const DB_NAME = 'wb3d23s';
 const DB_USER = 'wb3d23s';
 const DB_PW = '1234';
 const DB_PORT = 3306;
 ```
 
-Open `comment-sidecar.js` and configure the path of the recently created `comment-sidecar.php`:
-
-```javascript
-const BASE_PATH = "/comment-sidecar.php";
-```
-
-Open the HTML file where you like to embed the comments. Insert the following snippet. Choose a name for your site (`commentSidecarSite`) and insert the correct path of `comment-sidecar.js`.
+Open the HTML file where you like to embed the comments. Insert the following snippet and set the correct path of `comment-sidecar.js`.
 
 ```html
 <aside id="comment-sidecar"></aside>
 <script type="text/javascript">
-    commentSidecarSite = "yourdomain"; // put your site name here 
     (function() {
         const scriptNode = document.createElement('script');
         scriptNode.type = 'text/javascript';
         scriptNode.async = true;
-        scriptNode.src = '/comment-sidecar.js'; //adjust to the correct path
+        scriptNode.src = '/comment-sidecar-js-delivery.php'; //adjust to the correct path
         (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(scriptNode);
     })();
 </script>
 ```
 
-Optionally, you can upload `comment-sidecar-basic.css` to your web space and include it in the HTML header to get some basic styling. Or you can simply copy its content to your own CSS file in order to avoid a additional HTTP request.
+Optionally, you can include `comment-sidecar-basic.css` in the HTML header to get some basic styling. Or you can simply copy its content to your own CSS file in order to avoid a additional HTTP request.
 
 A complete example for the frontend can be found in [`src/playground.html`](https://github.com/phauer/comment-sidecar/blob/master/src/playground.html).  
 
@@ -120,7 +106,8 @@ sudo apt install python3-pip libmysqlclient-dev python-dev
 pip3 install mysqlclient requests path.py
 
 cd test
-./test_comment_sidecar.py
+python3 -m unittest discover . 
+# or only one test file: ./test_comment_sidecar.py
 ```
 
 ## See the Send Mails

@@ -1,7 +1,3 @@
-- with js delivery:
-    - remove config from js
-    - security issues: global var commentSidecarSite. deliver a tailored js via another php-file.
-- update installation
 - rate limit
 - support reply to a comment (reintroduce id in GET and POST for each post; but nest reply in GET JSON/on server-side - so we can test it)
 - watch comments -> email notifications or get notified if someone replies to my comment 
@@ -11,8 +7,6 @@
     - security: check referer (browser ensures this even for AJAX requests)
 - pagination
 - check xss 
-- tests for:
-    - js-delivery
 - db:
     - index correctly used? use `explain`.
     - insert with different timezone? -> insert as unix timestamp not as string
@@ -23,6 +17,8 @@
     - additional pw protection ("admin pw" or so). put in local webstorage for convenience?
         - enforce https?
     - moreover, only trash comments (set state to trashed/deleted). don't really delete it from db. reduces effects of an attack.
+- unrelated:
+    - md5 is very unsafe. use a spam email for gravatar! 
 
 # ideas: security means and spam protection
 
