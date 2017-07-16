@@ -78,9 +78,11 @@ function createComment($comment) {
     validatePostedComment($comment);
     $handler = connect();
     $stmt = $handler->prepare("INSERT INTO comments (author, email, content, site, path, creation_date) VALUES (:author, :email, :content, :site, :path, now());");
-    $stmt->bindParam(':author', $comment["author"]);
+    $author = htmlspecialchars($comment["author"]);
+    $content = htmlspecialchars($comment["content"]);
+    $stmt->bindParam(':author', $author);
     $stmt->bindParam(':email', $comment["email"]); // optional. can be null
-    $stmt->bindParam(':content', $comment["content"]);
+    $stmt->bindParam(':content', $content);
     $stmt->bindParam(':site', $comment["site"]);
     $stmt->bindParam(':path', $comment["path"]);
     $stmt->execute();

@@ -34,3 +34,5 @@ class CommentSidecarJsDeliveryTest(unittest.TestCase):
         self.assertIn("/comment-sidecar.php", js)
         self.assertNotIn("{{BASE_PATH}}", js)
 
+if __name__ == '__main__':
+    unittest.main()

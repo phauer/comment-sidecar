@@ -195,6 +195,18 @@ class CommentSidecarTest(unittest.TestCase):
         self.assertEqual(response.status_code, 201, "POST payload with an empty URL field is fine.")
         self.assertEqual(response.text, "")
 
+    def test_escaped_HTML_XSS_protection(self):
+        post_payload = create_post_payload()
+        post_payload['author'] = "<strong>Peter</strong>"
+        post_payload['content'] = '<script type="text/javascript">document.querySelector("aside#comment-sidecar h1").innerText = "XSS";</script>'
+        response = post_comment(post_payload)
+        self.assertEqual(response.text, "")
+        self.assertEqual(response.status_code, 201)
+
+        returned_json = get_comments().json()[0]
+        self.assertEqual(returned_json['author'], '&lt;strong&gt;Peter&lt;/strong&gt;')
+        self.assertEqual(returned_json['content'], '&lt;script type=&quot;text/javascript&quot;&gt;document.querySelector(&quot;aside#comment-sidecar h1&quot;).innerText = &quot;XSS&quot;;&lt;/script&gt;')
+
     def clear_mails(self):
         response = requests.delete(MAILHOG_BASE_URL + 'v1/messages')
         self.assertEqual(response.status_code, 200, "Test setup failed: Couldn't delete mails in mailhog.")

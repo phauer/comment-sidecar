@@ -1,13 +1,15 @@
+- sql injection test
+- validate max length of author. test
 - rate limit
 - support reply to a comment (reintroduce id in GET and POST for each post; but nest reply in GET JSON/on server-side - so we can test it)
-- watch comments -> get notified if someone replies to my comment
-    - add hint about this in the email field. "not published, but used for notification on replies and to display a gravatar avatar"
 - instead of display the whole (long) creation date, just say how much time has passed ("3 month ago"). 
 - multi-site support
     - CORS
     - security: check referer (browser ensures this even for AJAX requests)
 - pagination
-- check xss 
+- watch comments -> get notified if someone replies to my comment
+    - related issues: management of subscriptions? dedicated subscription table? check/uncheck notification when posting? unsubscribe link in mail? different table? -> postpone this feature!
+    - add hint about this in the email field. "not published, but used for notification on replies and to display a gravatar avatar"
 - db:
     - index correctly used? use `explain`.
     - insert with different timezone? -> insert as unix timestamp not as string
