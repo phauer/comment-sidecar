@@ -1,5 +1,4 @@
 - sql injection test
-- validate max length of author. test
 - rate limit
 - support reply to a comment (reintroduce id in GET and POST for each post; but nest reply in GET JSON/on server-side - so we can test it)
 - instead of display the whole (long) creation date, just say how much time has passed ("3 month ago"). 

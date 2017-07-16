@@ -100,6 +100,16 @@ function validatePostedComment($comment){
     checkExistence($comment, 'content');
     checkExistence($comment, 'site');
     checkExistence($comment, 'path');
+    checkMaxLength($comment, 'author', 40);
+    checkMaxLength($comment, 'email', 40);
+    checkMaxLength($comment, 'site', 40);
+    checkMaxLength($comment, 'path', 170);
+}
+
+function checkMaxLength($comment, $fieldName, $maxLength) {
+    if (strlen($comment[$fieldName]) > $maxLength) {
+        throw new InvalidRequestException("$fieldName value exceeds maximal length of " . $maxLength);
+    }
 }
 
 function checkExistence($comment, $field) {

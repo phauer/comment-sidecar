@@ -150,6 +150,12 @@ class CommentSidecarTest(unittest.TestCase):
         self.post_comment_with_blank_field_and_assert_error('site')
         self.post_comment_with_blank_field_and_assert_error('path')
 
+    def test_POST_to_long_fields(self):
+        self.post_comment_to_long_field_and_assert_error('author', 40)
+        self.post_comment_to_long_field_and_assert_error('email', 40)
+        self.post_comment_to_long_field_and_assert_error('site', 40)
+        self.post_comment_to_long_field_and_assert_error('path', 170)
+
     def test_POST_spam_protection_set_url_is_spam(self):
         post_payload = create_post_payload()
         post_payload['url'] = 'http://only.spambots.will/populate/this/field/'
@@ -231,6 +237,18 @@ class CommentSidecarTest(unittest.TestCase):
         response = post_comment(post_payload)
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json()['message'], blank_field + " is missing, empty or blank")
+
+    def post_comment_to_long_field_and_assert_error(self, field: str, max_length: int):
+        post_payload = create_post_payload()
+        post_payload[field] = "x" * (max_length + 1)
+        response = post_comment(post_payload)
+        self.assertEqual(response.json()['message'], field + " value exceeds maximal length of " + str(max_length))
+        self.assertEqual(response.status_code, 400)
+
+        # valid length (check it to avoid off-by-one-errors)
+        post_payload[field] = "x" * max_length
+        response = post_comment(post_payload)
+        self.assertEqual(response.status_code, 201)
 
     def assertTimestampBetween(self, creation_timestamp: str, start: int, end: int):
         timestamp = int(creation_timestamp)
