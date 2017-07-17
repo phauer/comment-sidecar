@@ -13,4 +13,12 @@ $translations = array(
     'noCommentsYet' => 'Noch keine Kommentare. Sei der erste!',
     'successMessage' => 'Kommentar erfolgreich abgesendet.',
     'failMessage' => 'Kommentar konnte nicht gesendet werden. Grund: ',
+
+    'dateString' => 'vor {}',
+    'years' => 'Jahren',
+    'months' => 'Monaten',
+    'days' => 'Tagen',
+    'hours' => 'Stunden',
+    'minutes' => 'Minuten',
+    'seconds' => 'Sekunden',
 );
