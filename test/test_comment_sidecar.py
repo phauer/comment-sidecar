@@ -62,13 +62,13 @@ class CommentSidecarTest(unittest.TestCase):
         self.assertEqual(len(comments_json), 1)
 
         returned_comment = comments_json[0]
+        self.assertEqual(returned_comment["id"], "1")
         self.assertEqual(returned_comment["author"], post_payload["author"])
         self.assertEqual(returned_comment["content"], post_payload["content"])
         gravatar_url = create_gravatar_url(post_payload["email"])
         self.assertEqual(returned_comment["gravatarUrl"], gravatar_url)
         self.assertTimestampBetween(returned_comment["creationTimestamp"], start=timestamp_before, end=timestamp_after)
         self.assertTrue('email' not in returned_comment, "Don't send the email back to browser")
-        self.assertTrue('id' not in returned_comment, "Don't send the id to browser")
         self.assertTrue('path' not in returned_comment, "Don't send the path to browser")
         self.assertTrue('site' not in returned_comment, "Don't send the site to browser")
         self.assertTrue('replyTo' not in returned_comment, "Don't send the replyTo to browser")

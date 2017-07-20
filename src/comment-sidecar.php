@@ -59,7 +59,9 @@ function getCommentsAsJson() {
 function mapToJson($results) {
     $json = array();
     foreach ($results as $result) {
-        $json[] = array('author' => $result['author'],
+        $json[] = array(
+            'id' => $result['id'],
+            'author' => $result['author'],
             'content' => $result['content'],
             'creationTimestamp' => $result['creationTimestamp'],
             'gravatarUrl' => createGravatarUrl($result['email'])

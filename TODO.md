@@ -1,6 +1,6 @@
+- support reply to a comment (nest reply in GET JSON/on server-side - so we can test it)
 - sql injection test
 - rate limit
-- support reply to a comment (reintroduce id in GET and POST for each post; but nest reply in GET JSON/on server-side - so we can test it)
 - multi-site support
     - CORS
     - security: check referer (browser ensures this even for AJAX requests)
