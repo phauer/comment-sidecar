@@ -17,9 +17,10 @@ function main() {
             }
             case 'POST': {
                 $comment = json_decode(file_get_contents('php://input'),true);
-                createComment($comment);
+                $createdId = createComment($comment);
                 sendNotificationViaMail($comment);
                 http_response_code(201);
+                echo ' { "id" : '. $createdId .' } ';
                 break;
             }
         }
@@ -88,7 +89,9 @@ function createComment($comment) {
     $stmt->bindParam(':site', $comment["site"]);
     $stmt->bindParam(':path', $comment["path"]);
     $stmt->execute();
+    $createdId = $handler->lastInsertId();
     $handler = null; //close connection
+    return $createdId;
 }
 
 function checkForSpam($comment) {

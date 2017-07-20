@@ -54,7 +54,7 @@ class CommentSidecarTest(unittest.TestCase):
         response = post_comment(post_payload)
         timestamp_after = int(time.time())
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(response.text, "")
+        self.assertEqual(response.json()['id'], 1)
 
         get_response = get_comments()
         self.assertEqual(get_response.status_code, 200)
@@ -73,13 +73,20 @@ class CommentSidecarTest(unittest.TestCase):
         self.assertTrue('site' not in returned_comment, "Don't send the site to browser")
         self.assertTrue('replyTo' not in returned_comment, "Don't send the replyTo to browser")
 
+    def test_POST_comments_and_replies_and_GET_reply_chain(self):
+        post_payload = create_post_payload()
+        response = post_comment(post_payload)
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.json()['id'], 1)
+        # TODO continue
+
     def test_POST_and_GET_comment_with_german_umlauts(self):
         post_payload = create_post_payload()
         post_payload['content'] = "äöüß - Deutsche Umlaute? Kein Problem für utf-8! ÖÄÜ"
         post_payload['author'] = "öäüßÖÄÜ"
         response = post_comment(post_payload)
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(response.text, "")
+        self.assertEqual(response.json()['id'], 1)
 
         get_response = get_comments()
         self.assertEqual(get_response.status_code, 200)
@@ -130,7 +137,7 @@ class CommentSidecarTest(unittest.TestCase):
         post_payload.pop('email')
         response = post_comment(post_payload)
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(response.text, "")
+        self.assertEqual(response.json()['id'], 1)
 
     def test_POST_missing_fields(self):
         self.post_comment_with_missing_field_and_assert_error('author')
@@ -199,14 +206,14 @@ class CommentSidecarTest(unittest.TestCase):
         post_payload['url'] = ""
         response = post_comment(post_payload)
         self.assertEqual(response.status_code, 201, "POST payload with an empty URL field is fine.")
-        self.assertEqual(response.text, "")
+        self.assertEqual(response.json()['id'], 1)
 
     def test_escaped_HTML_XSS_protection(self):
         post_payload = create_post_payload()
         post_payload['author'] = "<strong>Peter</strong>"
         post_payload['content'] = '<script type="text/javascript">document.querySelector("aside#comment-sidecar h1").innerText = "XSS";</script>'
         response = post_comment(post_payload)
-        self.assertEqual(response.text, "")
+        self.assertEqual(response.json()['id'], 1)
         self.assertEqual(response.status_code, 201)
 
         returned_json = get_comments().json()[0]
