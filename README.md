@@ -106,8 +106,12 @@ sudo apt install python3-pip libmysqlclient-dev python-dev
 pip3 install mysqlclient requests path.py
 
 cd test
+# execute all tests:
 python3 -m unittest discover . 
-# or only one test file: ./test_comment_sidecar.py
+# or only one test file: 
+./test_comment_sidecar.py
+# or only a single test:
+./test_comment_sidecar.py CommentSidecarTest.test_POST_comments_and_replies_and_GET_reply_chain 
 ```
 
 ## See the Send Mails
@@ -131,7 +135,13 @@ The PHP container contains already xdebug. You only have to set up IntelliJ IDEA
     - Use path mappings: `src` -> `/var/www/html`
 - ide key(session id): `IDEA_DEBUG` (or everything you like; but remember this key)
 
-Start the Run Configuration and set a breakpoint. To trigger it, you have to append the query parameter `XDEBUG_SESSION_START=IDEA_DEBUG` to the URL when calling the service. Other means (like browser extensions) can be found here: [Remote debugging with xdebug](https://xdebug.org/docs/remote). 
+Start the Run Configuration and set a breakpoint. To trigger it, you have to append the query parameter `XDEBUG_SESSION_START=IDEA_DEBUG` to the URL when calling the service. e.g.
+
+```bash
+http "localhost/comment-sidecar.php?site=peterworld%2Ecom&path=%2Fblogpost1%2F&XDEBUG_SESSION_START=IDEA_DEBUG"
+``` 
+
+Other means (like browser extensions) can be found here: [Remote debugging with xdebug](https://xdebug.org/docs/remote).
 
 ### Tips and Links for the Debug Setup
 
