@@ -67,11 +67,80 @@ class CommentSidecarTest(unittest.TestCase):
         gravatar_url = create_gravatar_url(post_payload["email"])
         self.assertEqual(returned_comment["gravatarUrl"], gravatar_url)
         self.assertTimestampBetween(returned_comment["creationTimestamp"], start=timestamp_before, end=timestamp_after)
-        self.assertEqual(len(returned_comment["replies"]), 0)
+        self.assertTrue("replies" not in returned_comment, "field 'replies' should not be in the payload. element: ".format(str(returned_comment)))
+        self.assertAbsentFields(returned_comment)
+
+    def assertAbsentFields(self, returned_comment):
         self.assertTrue('email' not in returned_comment, "Don't send the email back to browser")
         self.assertTrue('path' not in returned_comment, "Don't send the path to browser")
         self.assertTrue('site' not in returned_comment, "Don't send the site to browser")
         self.assertTrue('replyTo' not in returned_comment, "Don't send the replyTo to browser")
+
+    def test_POST_comments_and_replies_and_GET_reply_chain(self):
+        # for adhoc debugging: `http "localhost/comment-sidecar.php?site=peterworld%2Ecom&path=%2Fblogpost1%2F&XDEBUG_SESSION_START=IDEA_DEBUG"`
+        # root1
+        # - reply 1 to root
+        # - reply 2 to root
+        #   - reply  to reply 2
+        post_payload = create_post_payload()
+        post_payload['content'] = 'root'
+        response = self.post_comment(post_payload)
+        root_id = response.json()['id']
+
+        post_payload = create_post_payload()
+        post_payload['replyTo'] = root_id
+        post_payload['content'] = 'reply 1 to root'
+        self.post_comment(post_payload)
+
+        post_payload = create_post_payload()
+        post_payload['replyTo'] = root_id
+        post_payload['content'] = 'reply 2 to root'
+        response = self.post_comment(post_payload)
+        reply2_id = response.json()['id']
+
+        post_payload = create_post_payload()
+        post_payload['replyTo'] = reply2_id
+        post_payload['content'] = 'reply 3 to reply 2'
+        self.post_comment(post_payload)
+
+        get_response = get_comments()
+
+        # check root comments
+        self.assertEqual(get_response.status_code, 200)
+        returned_comments = get_response.json()
+        self.assertEqual(len(returned_comments), 1) # replies are nested so only one root comment
+        replies = returned_comments[0]['replies']
+
+        # check reply level 1
+        self.assertIsNotNone(replies)
+        self.assertEqual(len(replies), 2)
+        self.assertRepliesContains(replies, {
+            'content': 'reply 1 to root', 'id': '2', 'author': 'Peter',
+        })
+        self.assertRepliesContains(replies, {
+            'content': 'reply 2 to root', 'id': '3', 'author': 'Peter',
+        })
+        for reply in replies:
+            self.assertAbsentFields(reply)
+
+        # check reply level 2
+        comment = self.get_comment_by_content(replies, 'reply 2 to root')
+        replies_to_reply = comment['replies']
+        self.assertEqual(len(replies_to_reply), 1)
+        self.assertRepliesContains(replies_to_reply, {
+            'content': 'reply 3 to reply 2', 'id': '4', 'author': 'Peter',
+        })
+
+    def assertRepliesContains(self, replies, assumed_element):
+        replies_matching_assumed_element = [reply for reply in replies
+                                            if reply['content'] == assumed_element['content']
+                                            and reply['id'] == assumed_element['id']
+                                            and reply['author'] == assumed_element['author']
+         ]
+        self.assertEqual(len(replies_matching_assumed_element), 1, "Element is not in the list (or more than once).\nassumed_element: {}\nall elements: {}\n".format(assumed_element, replies))
+
+    # TODO test post with invalid id!
+    # TODO also use assert_success para for get_comments()
 
     def test_POST_and_GET_comment_with_german_umlauts(self):
         post_payload = create_post_payload()
@@ -255,6 +324,11 @@ class CommentSidecarTest(unittest.TestCase):
         if assert_success:
             self.assertEqual(response.status_code, 201, "Comment creation failed. Message: " + response.text)
         return response
+
+    def get_comment_by_content(self, replies, content):
+        comments = [comment for comment in replies if comment['content'] == content]
+        self.assertEqual(len(comments), 1, "There should be at least on comment with the content '{}'. Elements: {}".format(content, str(replies)))
+        return comments[0]
 
 def get_comments(site: str = DEFAULT_SITE, path: str = DEFAULT_PATH):
     return requests.get("{}?site={}&path={}".format(COMMENT_SIDECAR_URL, site, path))

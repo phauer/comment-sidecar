@@ -1,5 +1,5 @@
 - network_mode = hosts (required for xdebug) makes sql queries extremely slow!
-- support reply to a comment (nest reply in GET JSON/on server-side - so we can test it)
+- support reply in UI
 - sql injection test
 - rate limit
 - multi-site support

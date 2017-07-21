@@ -57,10 +57,37 @@ function getCommentsAsJson() {
     return $json;
 }
 
+const ROOT = "ROOT";
+
 function mapToJson($results) {
-    $json = array();
+    if ($results == null){
+        return json_encode([]);
+    }
+    $replyToIdToCommentsMap = createReplyIdToCommentsMap($results);
+    $rootComments = $replyToIdToCommentsMap[ROOT];
+    nestRepliesIntoTheirParentComments($rootComments, $replyToIdToCommentsMap);
+    return json_encode($rootComments);
+}
+
+function nestRepliesIntoTheirParentComments(&$comments, $replyToIdToCommentsMap) {
+    //run over comments and see if there is an map entries for this id
+    foreach ($comments as &$comment) {
+        $id = $comment['id'];
+        if (isset($replyToIdToCommentsMap[$id])) {
+            $comment['replies'] = $replyToIdToCommentsMap[$id];
+            nestRepliesIntoTheirParentComments($comment['replies'], $replyToIdToCommentsMap);
+        }
+    }
+}
+
+function createReplyIdToCommentsMap($results) {
+    $replyToIdToCommentsMap = array(); // comment id -> comments having this id as replyTo
     foreach ($results as $result) {
-        $json[] = array(
+        $replyToId = isset($result['reply_to']) ? $result['reply_to'] : ROOT;
+        if (!isset($replyToIdToCommentsMap[$replyToId])) {
+            $replyToIdToCommentsMap[$replyToId] = array();
+        }
+        $replyToIdToCommentsMap[$replyToId][] = array(
             'id' => $result['id'],
             'author' => $result['author'],
             'content' => $result['content'],
@@ -68,7 +95,7 @@ function mapToJson($results) {
             'gravatarUrl' => createGravatarUrl($result['email'])
         );
     }
-    return json_encode($json);
+    return $replyToIdToCommentsMap;
 }
 
 function createGravatarUrl($email) {
@@ -80,12 +107,13 @@ function createComment($comment) {
     checkForSpam($comment);
     validatePostedComment($comment);
     $handler = connect();
-    $stmt = $handler->prepare("INSERT INTO comments (author, email, content, site, path, creation_date) VALUES (:author, :email, :content, :site, :path, now());");
+    $stmt = $handler->prepare("INSERT INTO comments (author, email, content, reply_to, site, path, creation_date) VALUES (:author, :email, :content, :reply_to, :site, :path, now());");
     $author = htmlspecialchars($comment["author"]);
     $content = htmlspecialchars($comment["content"]);
     $stmt->bindParam(':author', $author);
     $stmt->bindParam(':email', $comment["email"]); // optional. can be null
     $stmt->bindParam(':content', $content);
+    $stmt->bindParam(':reply_to', $comment['replyTo']);
     $stmt->bindParam(':site', $comment["site"]);
     $stmt->bindParam(':path', $comment["path"]);
     $stmt->execute();
