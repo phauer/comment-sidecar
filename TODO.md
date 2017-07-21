@@ -1,3 +1,4 @@
+- network_mode = hosts (required for xdebug) makes sql queries extremely slow!
 - support reply to a comment (nest reply in GET JSON/on server-side - so we can test it)
 - sql injection test
 - rate limit
@@ -18,9 +19,11 @@
     - additional pw protection ("admin pw" or so). put in local webstorage for convenience?
         - enforce https?
     - moreover, only trash comments (set state to trashed/deleted). don't really delete it from db. reduces effects of an attack.
+- circle around avatars
 - unrelated:
     - md5 is very unsafe. use a spam email for gravatar! 
 - make file to automate test execution and zipping of the relevant files 
+- only request for a gravatar image if there is an email.
 
 # ideas: security means and spam protection
 
