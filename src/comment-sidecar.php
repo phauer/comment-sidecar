@@ -35,6 +35,10 @@ function main() {
     }
 }
 
+function isInvalidReplyToId($ex){
+    return strpos($ex->getMessage(), 'replyTo_refers_to_existing_id') !== false;
+}
+
 function connect() {
     $handler = new PDO("mysql:host=".DB_HOST.":".DB_PORT.";dbname=".DB_NAME.";charset=utf8", DB_USER, DB_PW);
     $handler->setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION );
@@ -104,22 +108,29 @@ function createGravatarUrl($email) {
 }
 
 function createComment($comment) {
-    checkForSpam($comment);
-    validatePostedComment($comment);
-    $handler = connect();
-    $stmt = $handler->prepare("INSERT INTO comments (author, email, content, reply_to, site, path, creation_date) VALUES (:author, :email, :content, :reply_to, :site, :path, now());");
-    $author = htmlspecialchars($comment["author"]);
-    $content = htmlspecialchars($comment["content"]);
-    $stmt->bindParam(':author', $author);
-    $stmt->bindParam(':email', $comment["email"]); // optional. can be null
-    $stmt->bindParam(':content', $content);
-    $stmt->bindParam(':reply_to', $comment['replyTo']);
-    $stmt->bindParam(':site', $comment["site"]);
-    $stmt->bindParam(':path', $comment["path"]);
-    $stmt->execute();
-    $createdId = $handler->lastInsertId();
-    $handler = null; //close connection
-    return $createdId;
+    try {
+        checkForSpam($comment);
+        validatePostedComment($comment);
+        $handler = connect();
+        $stmt = $handler->prepare("INSERT INTO comments (author, email, content, reply_to, site, path, creation_date) VALUES (:author, :email, :content, :reply_to, :site, :path, now());");
+        $author = htmlspecialchars($comment["author"]);
+        $content = htmlspecialchars($comment["content"]);
+        $stmt->bindParam(':author', $author);
+        $stmt->bindParam(':email', $comment["email"]); // optional. can be null
+        $stmt->bindParam(':content', $content);
+        $stmt->bindParam(':reply_to', $comment['replyTo']);
+        $stmt->bindParam(':site', $comment["site"]);
+        $stmt->bindParam(':path', $comment["path"]);
+        $stmt->execute();
+        $createdId = $handler->lastInsertId();
+        $handler = null; //close connection
+        return $createdId;
+    } catch (PDOException $ex){
+        if (isInvalidReplyToId($ex)) {
+            throw new InvalidRequestException("The replyTo value '".$comment["replyTo"]."' refers to a not existing id.");
+        }
+        throw $ex;
+    }
 }
 
 function checkForSpam($comment) {

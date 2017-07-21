@@ -6,6 +6,7 @@
     - CORS
     - security: check referer (browser ensures this even for AJAX requests)
 - pagination
+- improve replyTo check: referring id has to be in the same site and path.
 - watch comments -> get notified if someone replies to my comment
     - related issues: management of subscriptions? dedicated subscription table? check/uncheck notification when posting? unsubscribe link in mail? different table? -> postpone this feature!
     - add hint about this in the email field. "not published, but used for notification on replies and to display a gravatar avatar"

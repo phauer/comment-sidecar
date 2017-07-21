@@ -136,7 +136,12 @@ class CommentSidecarTest(unittest.TestCase):
          ]
         self.assertEqual(len(replies_matching_assumed_element), 1, "Element is not in the list (or more than once).\nassumed_element: {}\nall elements: {}\n".format(assumed_element, replies))
 
-    # TODO test post with invalid id!
+    def test_POST_invalid_replyTo_ID(self):
+        post_payload = create_post_payload()
+        post_payload['replyTo'] = '989089'
+        response = self.post_comment(post_payload, assert_success=False)
+        self.assertEqual(response.status_code, 400, "Invalid replyTo ID should be rejected.")
+        self.assertEqual(response.json()['message'], "The replyTo value '989089' refers to a not existing id.")
 
     def test_POST_and_GET_comment_with_german_umlauts(self):
         post_payload = create_post_payload()
@@ -310,7 +315,7 @@ class CommentSidecarTest(unittest.TestCase):
         self.assertGreaterEqual(timestamp, start)
         self.assertLessEqual(timestamp, end)
 
-    def post_comment(self, post_payload, assert_success:bool=True):
+    def post_comment(self, post_payload, assert_success: bool=True):
         response = requests.post(url=COMMENT_SIDECAR_URL, json=post_payload)
         if assert_success:
             self.assertEqual(response.status_code, 201, "Comment creation failed. Message: " + response.text)
