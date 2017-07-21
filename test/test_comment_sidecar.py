@@ -51,9 +51,8 @@ class CommentSidecarTest(unittest.TestCase):
     def test_POST_and_GET_comment(self):
         post_payload = create_post_payload()
         timestamp_before = int(time.time())
-        response = post_comment(post_payload)
+        response = self.post_comment(post_payload)
         timestamp_after = int(time.time())
-        self.assertEqual(response.status_code, 201)
         self.assertEqual(response.json()['id'], 1)
 
         get_response = get_comments()
@@ -68,24 +67,17 @@ class CommentSidecarTest(unittest.TestCase):
         gravatar_url = create_gravatar_url(post_payload["email"])
         self.assertEqual(returned_comment["gravatarUrl"], gravatar_url)
         self.assertTimestampBetween(returned_comment["creationTimestamp"], start=timestamp_before, end=timestamp_after)
+        self.assertEqual(len(returned_comment["replies"]), 0)
         self.assertTrue('email' not in returned_comment, "Don't send the email back to browser")
         self.assertTrue('path' not in returned_comment, "Don't send the path to browser")
         self.assertTrue('site' not in returned_comment, "Don't send the site to browser")
         self.assertTrue('replyTo' not in returned_comment, "Don't send the replyTo to browser")
 
-    def test_POST_comments_and_replies_and_GET_reply_chain(self):
-        post_payload = create_post_payload()
-        response = post_comment(post_payload)
-        self.assertEqual(response.status_code, 201)
-        self.assertEqual(response.json()['id'], 1)
-        # TODO continue
-
     def test_POST_and_GET_comment_with_german_umlauts(self):
         post_payload = create_post_payload()
         post_payload['content'] = "äöüß - Deutsche Umlaute? Kein Problem für utf-8! ÖÄÜ"
         post_payload['author'] = "öäüßÖÄÜ"
-        response = post_comment(post_payload)
-        self.assertEqual(response.status_code, 201)
+        response = self.post_comment(post_payload)
         self.assertEqual(response.json()['id'], 1)
 
         get_response = get_comments()
@@ -100,10 +92,10 @@ class CommentSidecarTest(unittest.TestCase):
 
         post_payload = create_post_payload()
         post_payload['path'] = path_with_two_comments
-        post_comment(post_payload)
-        post_comment(post_payload)
+        self.post_comment(post_payload)
+        self.post_comment(post_payload)
         post_payload['path'] = path_with_one_comment
-        post_comment(post_payload)
+        self.post_comment(post_payload)
 
         response = get_comments(path=path_with_two_comments)
         self.assertEqual(response.status_code, 200)
@@ -119,10 +111,10 @@ class CommentSidecarTest(unittest.TestCase):
 
         post_payload = create_post_payload()
         post_payload['site'] = site_with_two_comments
-        post_comment(post_payload)
-        post_comment(post_payload)
+        self.post_comment(post_payload)
+        self.post_comment(post_payload)
         post_payload['site'] = site_with_one_comment
-        post_comment(post_payload)
+        self.post_comment(post_payload)
 
         response = get_comments(site=site_with_two_comments)
         self.assertEqual(response.status_code, 200)
@@ -135,8 +127,7 @@ class CommentSidecarTest(unittest.TestCase):
     def test_POST_without_optional_email(self):
         post_payload = create_post_payload()
         post_payload.pop('email')
-        response = post_comment(post_payload)
-        self.assertEqual(response.status_code, 201)
+        response = self.post_comment(post_payload)
         self.assertEqual(response.json()['id'], 1)
 
     def test_POST_missing_fields(self):
@@ -166,7 +157,7 @@ class CommentSidecarTest(unittest.TestCase):
     def test_POST_spam_protection_set_url_is_spam(self):
         post_payload = create_post_payload()
         post_payload['url'] = 'http://only.spambots.will/populate/this/field/'
-        response = post_comment(post_payload)
+        response = self.post_comment(post_payload, assert_success=False)
         self.assertEqual(response.status_code, 400, "POST payload with an URL field should be rejected. The URL an hidden form field and used for spam protection.")
         self.assertEqual(response.json()['message'], "")
 
@@ -174,7 +165,7 @@ class CommentSidecarTest(unittest.TestCase):
         self.clear_mails()
 
         post_payload = create_post_payload()
-        post_comment(post_payload)
+        self.post_comment(post_payload)
 
         json = requests.get(MAILHOG_MESSAGES_URL).json()
         self.assertEqual(json['total'], 1)
@@ -196,7 +187,7 @@ class CommentSidecarTest(unittest.TestCase):
 
         post_payload = create_post_payload()
         post_payload.pop('author')
-        post_comment(post_payload)
+        self.post_comment(post_payload, assert_success=False)
 
         json = requests.get(MAILHOG_MESSAGES_URL).json()
         self.assertEqual(json['total'], 0)
@@ -204,17 +195,15 @@ class CommentSidecarTest(unittest.TestCase):
     def test_POST_spam_protection_empty_url_is_fine(self):
         post_payload = create_post_payload()
         post_payload['url'] = ""
-        response = post_comment(post_payload)
-        self.assertEqual(response.status_code, 201, "POST payload with an empty URL field is fine.")
+        response = self.post_comment(post_payload)
         self.assertEqual(response.json()['id'], 1)
 
     def test_escaped_HTML_XSS_protection(self):
         post_payload = create_post_payload()
         post_payload['author'] = "<strong>Peter</strong>"
         post_payload['content'] = '<script type="text/javascript">document.querySelector("aside#comment-sidecar h1").innerText = "XSS";</script>'
-        response = post_comment(post_payload)
+        response = self.post_comment(post_payload)
         self.assertEqual(response.json()['id'], 1)
-        self.assertEqual(response.status_code, 201)
 
         returned_json = get_comments().json()[0]
         self.assertEqual(returned_json['author'], '&lt;strong&gt;Peter&lt;/strong&gt;')
@@ -227,43 +216,45 @@ class CommentSidecarTest(unittest.TestCase):
     def post_comment_with_missing_field_and_assert_error(self, missing_field: str):
         post_payload = create_post_payload()
         post_payload.pop(missing_field)
-        response = post_comment(post_payload)
+        response = self.post_comment(post_payload, assert_success=False)
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json()['message'], missing_field + " is missing, empty or blank")
 
     def post_comment_with_empty_field_and_assert_error(self, empty_field: str):
         post_payload = create_post_payload()
         post_payload[empty_field] = ""
-        response = post_comment(post_payload)
+        response = self.post_comment(post_payload, assert_success=False)
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json()['message'], empty_field + " is missing, empty or blank")
 
     def post_comment_with_blank_field_and_assert_error(self, blank_field: str):
         post_payload = create_post_payload()
         post_payload[blank_field] = " "
-        response = post_comment(post_payload)
+        response = self.post_comment(post_payload, assert_success=False)
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json()['message'], blank_field + " is missing, empty or blank")
 
     def post_comment_to_long_field_and_assert_error(self, field: str, max_length: int):
         post_payload = create_post_payload()
         post_payload[field] = "x" * (max_length + 1)
-        response = post_comment(post_payload)
+        response = self.post_comment(post_payload, assert_success=False)
         self.assertEqual(response.json()['message'], field + " value exceeds maximal length of " + str(max_length))
         self.assertEqual(response.status_code, 400)
 
         # valid length (check it to avoid off-by-one-errors)
         post_payload[field] = "x" * max_length
-        response = post_comment(post_payload)
-        self.assertEqual(response.status_code, 201)
+        self.post_comment(post_payload)
 
     def assertTimestampBetween(self, creation_timestamp: str, start: int, end: int):
         timestamp = int(creation_timestamp)
         self.assertGreaterEqual(timestamp, start)
         self.assertLessEqual(timestamp, end)
 
-def post_comment(post_payload):
-    return requests.post(url=COMMENT_SIDECAR_URL, json=post_payload)
+    def post_comment(self, post_payload, assert_success=True):
+        response = requests.post(url=COMMENT_SIDECAR_URL, json=post_payload)
+        if assert_success:
+            self.assertEqual(response.status_code, 201, "Comment creation failed. Message: " + response.text)
+        return response
 
 def get_comments(site: str = DEFAULT_SITE, path: str = DEFAULT_PATH):
     return requests.get("{}?site={}&path={}".format(COMMENT_SIDECAR_URL, site, path))
