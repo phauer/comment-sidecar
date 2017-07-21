@@ -1,11 +1,11 @@
-- network_mode = hosts (required for xdebug) makes sql queries extremely slow!
 - support reply in UI
-- sql injection test
 - rate limit
 - multi-site support
     - CORS
     - security: check referer (browser ensures this even for AJAX requests)
 - pagination
+- network_mode = hosts (required for xdebug) makes sql queries extremely slow!
+- sql injection test
 - improve replyTo check: referring id has to be in the same site and path.
 - watch comments -> get notified if someone replies to my comment
     - related issues: management of subscriptions? dedicated subscription table? check/uncheck notification when posting? unsubscribe link in mail? different table? -> postpone this feature!
@@ -15,6 +15,7 @@
     - insert with different timezone? -> insert as unix timestamp not as string
     - use epoch timestamp or datetime with timezone for read and write
 - deletion link (comes with security efforts): 
+    - README text: "E-Mail includes a deletion link to easily remove undesired comments." 
     - on post creation, generate a token. this is required to delete a post (passed via url). this way, nobody can easily clear the whole db just by increasing the id.
         - alternative: use uuid instead of id&token. works, if this uuid is not delivered to client at all. so this uuid is hidden.
     - additional pw protection ("admin pw" or so). put in local webstorage for convenience?
@@ -25,6 +26,7 @@
     - md5 is very unsafe. use a spam email for gravatar! 
 - make file to automate test execution and zipping of the relevant files 
 - only request for a gravatar image if there is an email.
+- markdown support
 
 # ideas: security means and spam protection
 

@@ -5,7 +5,7 @@
 
 comment-sidecar is a **lightweight, tracking-free, self-hosted comment service**. It aims at restricted web spaces where only **PHP and MySQL** are available. And it is easy to embed into statically generated sites that are created with Hugo or Jekyll.
   
-# Planned Features
+# Features
 
 - Tracking-free and fast. The comment-sidecar only needs one additional request. Contrary, Disqus leads to **110 additional requests**! Read [here](http://donw.io/post/github-comments/) for more details about Disqus' tracking greed and performance impact.
 - Privacy. Your data belongs to you.
@@ -14,9 +14,8 @@ comment-sidecar is a **lightweight, tracking-free, self-hosted comment service**
 - No account required. The visitors of your side don't need to have an account to drop a comment.
 - No performance impact on TTFB (Time To First Byte), because the comments are loaded asynchronously.
 - Spam Protection.
-- E-Mail Notification. E-Mail includes a deletion link to easily remove undesired comments. 
+- E-Mail Notification.
 - Gravatar Support.
-- Markdown Support.
 - Use one comment-sidecar installation for multiple sites.
 - Replying to a comment is supported.
 
