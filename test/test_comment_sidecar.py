@@ -29,23 +29,22 @@ class CommentSidecarTest(unittest.TestCase):
         self.assertEqual(response.json()["message"], INVALID_QUERY_PARAMS)
 
     def test_GET_empty_query_params(self):
-        response = get_comments(site='', path='')
+        response = self.get_comments(site='', path='', assert_success=False)
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json()["message"], INVALID_QUERY_PARAMS)
 
     def test_GET_missing_path(self):
-        response = get_comments(site='domain.com', path='')
+        response = self.get_comments(site='domain.com', path='', assert_success=False)
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json()["message"], INVALID_QUERY_PARAMS)
 
     def test_GET_missing_site(self):
-        response = get_comments(site='', path='blogpost1')
+        response = self.get_comments(site='', path='blogpost1', assert_success=False)
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json()["message"], INVALID_QUERY_PARAMS)
 
     def test_GET_empty_array_if_no_comments(self):
-        response = get_comments()
-        self.assertEqual(response.status_code, 200)
+        response = self.get_comments()
         self.assertEqual(response.text, '[]')
 
     def test_POST_and_GET_comment(self):
@@ -55,8 +54,7 @@ class CommentSidecarTest(unittest.TestCase):
         timestamp_after = int(time.time())
         self.assertEqual(response.json()['id'], 1)
 
-        get_response = get_comments()
-        self.assertEqual(get_response.status_code, 200)
+        get_response = self.get_comments()
         comments_json = get_response.json()
         self.assertEqual(len(comments_json), 1)
 
@@ -103,10 +101,9 @@ class CommentSidecarTest(unittest.TestCase):
         post_payload['content'] = 'reply 3 to reply 2'
         self.post_comment(post_payload)
 
-        get_response = get_comments()
+        get_response = self.get_comments()
 
         # check root comments
-        self.assertEqual(get_response.status_code, 200)
         returned_comments = get_response.json()
         self.assertEqual(len(returned_comments), 1) # replies are nested so only one root comment
         replies = returned_comments[0]['replies']
@@ -140,7 +137,6 @@ class CommentSidecarTest(unittest.TestCase):
         self.assertEqual(len(replies_matching_assumed_element), 1, "Element is not in the list (or more than once).\nassumed_element: {}\nall elements: {}\n".format(assumed_element, replies))
 
     # TODO test post with invalid id!
-    # TODO also use assert_success para for get_comments()
 
     def test_POST_and_GET_comment_with_german_umlauts(self):
         post_payload = create_post_payload()
@@ -149,8 +145,7 @@ class CommentSidecarTest(unittest.TestCase):
         response = self.post_comment(post_payload)
         self.assertEqual(response.json()['id'], 1)
 
-        get_response = get_comments()
-        self.assertEqual(get_response.status_code, 200)
+        get_response = self.get_comments()
         returned_comment = get_response.json()[0]
         self.assertEqual(returned_comment["author"], post_payload["author"])
         self.assertEqual(returned_comment["content"], post_payload["content"])
@@ -166,12 +161,10 @@ class CommentSidecarTest(unittest.TestCase):
         post_payload['path'] = path_with_one_comment
         self.post_comment(post_payload)
 
-        response = get_comments(path=path_with_two_comments)
-        self.assertEqual(response.status_code, 200)
+        response = self.get_comments(path=path_with_two_comments)
         self.assertEqual(len(response.json()), 2)
 
-        response = get_comments(path=path_with_one_comment)
-        self.assertEqual(response.status_code, 200)
+        response = self.get_comments(path=path_with_one_comment)
         self.assertEqual(len(response.json()), 1)
 
     def test_GET_different_sites(self):
@@ -185,12 +178,10 @@ class CommentSidecarTest(unittest.TestCase):
         post_payload['site'] = site_with_one_comment
         self.post_comment(post_payload)
 
-        response = get_comments(site=site_with_two_comments)
-        self.assertEqual(response.status_code, 200)
+        response = self.get_comments(site=site_with_two_comments)
         self.assertEqual(len(response.json()), 2)
 
-        response = get_comments(site=site_with_one_comment)
-        self.assertEqual(response.status_code, 200)
+        response = self.get_comments(site=site_with_one_comment)
         self.assertEqual(len(response.json()), 1)
 
     def test_POST_without_optional_email(self):
@@ -274,7 +265,7 @@ class CommentSidecarTest(unittest.TestCase):
         response = self.post_comment(post_payload)
         self.assertEqual(response.json()['id'], 1)
 
-        returned_json = get_comments().json()[0]
+        returned_json = self.get_comments().json()[0]
         self.assertEqual(returned_json['author'], '&lt;strong&gt;Peter&lt;/strong&gt;')
         self.assertEqual(returned_json['content'], '&lt;script type=&quot;text/javascript&quot;&gt;document.querySelector(&quot;aside#comment-sidecar h1&quot;).innerText = &quot;XSS&quot;;&lt;/script&gt;')
 
@@ -319,10 +310,16 @@ class CommentSidecarTest(unittest.TestCase):
         self.assertGreaterEqual(timestamp, start)
         self.assertLessEqual(timestamp, end)
 
-    def post_comment(self, post_payload, assert_success=True):
+    def post_comment(self, post_payload, assert_success:bool=True):
         response = requests.post(url=COMMENT_SIDECAR_URL, json=post_payload)
         if assert_success:
             self.assertEqual(response.status_code, 201, "Comment creation failed. Message: " + response.text)
+        return response
+
+    def get_comments(self, site: str = DEFAULT_SITE, path: str = DEFAULT_PATH, assert_success:bool=True):
+        response = requests.get("{}?site={}&path={}".format(COMMENT_SIDECAR_URL, site, path))
+        if assert_success:
+            self.assertEqual(response.status_code, 200, "Getting comments failed. Message: " + response.text)
         return response
 
     def get_comment_by_content(self, replies, content):
@@ -330,8 +327,6 @@ class CommentSidecarTest(unittest.TestCase):
         self.assertEqual(len(comments), 1, "There should be at least on comment with the content '{}'. Elements: {}".format(content, str(replies)))
         return comments[0]
 
-def get_comments(site: str = DEFAULT_SITE, path: str = DEFAULT_PATH):
-    return requests.get("{}?site={}&path={}".format(COMMENT_SIDECAR_URL, site, path))
 
 def create_post_payload():
     return {
