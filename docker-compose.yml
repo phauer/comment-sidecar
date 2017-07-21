@@ -6,6 +6,7 @@ services:
       - ./src:/var/www/html/
     ports:
       - "80:80"
+    network_mode: "host" # expose in the native network namespace of the host; this way, xdebug (within the container) can connect to IDEA's xdebug server (port 9000 by default)
   mysql:
     image: mysql:5.6.33
     volumes:

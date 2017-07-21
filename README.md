@@ -113,3 +113,29 @@ python3 -m unittest discover .
 ## See the Send Mails
 
 MailHog provides a neat Web UI. Just open [`http://localhost:8025/`](http://localhost:8025/) after calling `docker-compose up`.
+
+## Connect to the MySQL Container using a MySQL Client
+
+Use host `127.0.0.1` instead of `localhost`! Port `3306`. Database `comment-sidecar`. User `root` and password `root`.
+
+## Debugging with IntelliJ IDEA/PhpStorm
+
+The PHP container contains already xdebug. You only have to set up IntelliJ IDEA Ultimate or PhpStorm.
+
+- Create a Run Configuration "PHP Remote Debug". You may need to click on "n items more (irrelevant)" to find this Run Configuration.
+- Create a new Server
+    - Name: docker (or so)
+    - Host: `localhost`
+    - Port: `80`
+    - Debugger: `Xdebug`
+    - Use path mappings: `src` -> `/var/www/html`
+- ide key(session id): `IDEA_DEBUG` (or everything you like; but remember this key)
+
+Start the Run Configuration and set a breakpoint. To trigger it, you have to append the query parameter `XDEBUG_SESSION_START=IDEA_DEBUG` to the URL when calling the service. Other means (like browser extensions) can be found here: [Remote debugging with xdebug](https://xdebug.org/docs/remote). 
+
+### Tips and Links for the Debug Setup
+
+- Does xdebug work at all in the container? Call [`http://localhost/phpinfo.php`](http://localhost/phpinfo.php) and check if xdebug is loaded and how it is configured. Other means can be found [here](https://stackoverflow.com/questions/14046501/check-if-xdebug-is-working) 
+- ['How to setup xdebug and phpstorm'](https://forums.docker.com/t/solved-how-to-setup-xdebug-and-phpstorm/13641/12) was very helpful to set up xdebug in this dockerized environment properly.
+- [Install xdebug](https://xdebug.org/docs/install) - just if you are curious.
+- Maybe ['Configuring xdebug in IDEA'](https://www.jetbrains.com/help/idea/configuring-xdebug.html) can also be helpful.
