@@ -22,9 +22,9 @@
             element.classList.add("fail");
         }
     }
-    function markInvalidFieldsAndIsValid() {
+    function markInvalidFieldsAndIsValid(formDiv) {
         let isValid = true;
-        const inputs = document.querySelectorAll("div.cs-form .form-control");
+        const inputs = formDiv.querySelectorAll("div.cs-form .form-control");
         inputs.forEach(input => {
             if (input.value.trim().length === 0) {
                 input.parentNode.classList.add("has-error");
@@ -35,14 +35,14 @@
         });
         return isValid;
     }
-    function submitComment() {
-        if (!markInvalidFieldsAndIsValid()) {
+    function submitComment(formDiv, parentId) {
+        if (!markInvalidFieldsAndIsValid(formDiv)) {
             return false;
         }
-        const author = document.querySelector("#cs-author").value;
-        const email = document.querySelector("#cs-email").value;
-        const content = document.querySelector("#cs-content").value;
-        const url = document.querySelector("#cs-url").value;
+        const author = formDiv.querySelector(".cs-author").value;
+        const email = formDiv.querySelector(".cs-email").value;
+        const content = formDiv.querySelector(".cs-content").value;
+        const url = formDiv.querySelector(".cs-url").value;
         const payload = {
             author: author,
             email: email,
@@ -51,6 +51,9 @@
             path: location.pathname,
             url: url
         };
+        if (parentId !== undefined) {
+            payload.replyTo = parentId;
+        }
         fetch(BASE_PATH,
             {
                 headers: {
@@ -100,6 +103,7 @@
     function createNodeForComment(comment) {
         const postDiv = document.createElement('div');
         postDiv.setAttribute("class", "cs-post");
+        postDiv.setAttribute("id", `cs-post-${comment.id}`);
         postDiv.innerHTML = `
             <div class="cs-avatar"><img src="${comment.gravatarUrl}?s=65&d=mm"/></div>
             <div class="cs-body">
@@ -108,37 +112,57 @@
                     <span class="cs-date">${formatDate(comment.creationTimestamp)}</span>
                 </header>
                 <div class="cs-content">${comment.content}</div>
+                <button class="cs-reply-button btn btn-default btn-xs">{{reply}}</button>
+                <div class="cs-reply-form"></div>
+                <div class="cs-replies"></div>
             </div>
         `;
+        postDiv.querySelector("button").onclick = () => expandReplyForm(postDiv, comment.id);
+
+        if (comment.replies !== undefined){
+            const repliesDiv = postDiv.querySelector(".cs-replies");
+            comment.replies.map(createNodeForComment).forEach(node => repliesDiv.appendChild(node));
+        }
+
         return postDiv;
     }
-    function createFormNode() {
-        const div = document.createElement('div');
-        div.setAttribute("class", "cs-form");
-        div.innerHTML = `
+    function expandReplyForm(postDiv, parentCommentId) {
+        const replyForm = postDiv.querySelector(".cs-reply-form");
+        replyForm.innerHTML = createFormHtml('{{reply}}');
+        replyForm.querySelector("button").onclick = () => submitComment(replyForm, parentCommentId);
+    }
+
+    function createFormHtml(buttonLabel) {
+        return `
             <form>
               <div class="form-group">
                 <label for="cs-author" class="control-label">{{name}}:</label>
-                <input type="text" class="form-control" id="cs-author">
+                <input type="text" class="form-control cs-author">
               </div>
               <div class="form-group">
                 <label for="cs-email" class="control-label">{{email}}:</label>
-                <input type="email" class="form-control" id="cs-email" placeholder="{{emailHint}}">
+                <input type="email" class="form-control cs-email" placeholder="{{emailHint}}">
               </div>
               <div class="form-group cs-url-group">
                 <label for="cs-url" class="control-label">URL:</label>
-                <input type="url" id="cs-url" name="url" placeholder="URL">
+                <input type="url" class="cs-url" name="url" placeholder="URL">
               </div>
               <div class="form-group">
                 <label for="cs-content" class="control-label">{{comment}}:</label>
-                <textarea class="form-control" id="cs-content" rows="7"></textarea>
+                <textarea class="form-control cs-content" rows="7"></textarea>
               </div>
-              <button type="submit" class="btn btn-primary">{{submit}}</button>
+              <button type="submit" class="btn btn-primary">${buttonLabel}</button>
               <p class="cs-form-message"></p>
             </form>
         `;
-        div.querySelector("button").onclick = submitComment;
-        return div;
+    }
+
+    function createFormNode() {
+        const mainFormDiv = document.createElement('div');
+        mainFormDiv.setAttribute("class", "cs-form");
+        mainFormDiv.innerHTML = createFormHtml('{{submit}}');
+        mainFormDiv.querySelector("button").onclick = () => submitComment(mainFormDiv);
+        return mainFormDiv;
     }
     function loadComments(){
         const path = encodeURIComponent(location.pathname);
@@ -164,3 +188,8 @@
     };
     refresh();
 })();
+
+//TODO reply: proper position of message
+//TODO css: don't indent on small devices
+//TODO collapse reply form again
+//TODO css-based animation for expending reply form

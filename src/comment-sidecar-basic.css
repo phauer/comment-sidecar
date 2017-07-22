@@ -11,7 +11,7 @@ aside#comment-sidecar div.cs-avatar img{
     border-radius: 150px;
 }
 aside#comment-sidecar div.cs-body {
-    margin: 0px 0px 0px 65px;
+    margin: 0px 0px 0px 80px;
 }
 aside#comment-sidecar div.cs-body header.cs-header{
 }
@@ -23,8 +23,12 @@ aside#comment-sidecar div.cs-body header.cs-header span.cs-date{
     font-size: 90%;
     color: gray;
 }
-aside#comment-sidecar div.cs-body div.post-content{
-    margin: 5px 0px 5px 0px;
+aside#comment-sidecar div.cs-body div.cs-content{
+    padding: 5px;
+    margin: 5px 0px 0px 0px;
+}
+aside#comment-sidecar div.cs-body div.cs-reply-form {
+    padding: 5px;
 }
 aside#comment-sidecar div.cs-comment-list p{
     margin-top: 15px;

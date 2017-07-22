@@ -9,6 +9,7 @@ $translations = array(
     'emailHint' => 'E-Mail-Adresse wird nicht veröffentlicht. Gravatar wird unterstützt.',
 
     'submit' => 'Abschicken',
+    'reply' => 'Antworten',
 
     'noCommentsYet' => 'Noch keine Kommentare. Sei der erste!',
     'successMessage' => 'Kommentar erfolgreich abgesendet.',
