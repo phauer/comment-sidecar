@@ -112,12 +112,21 @@
                     <span class="cs-date">${formatDate(comment.creationTimestamp)}</span>
                 </header>
                 <div class="cs-content">${comment.content}</div>
-                <button class="cs-reply-button btn btn-default btn-xs">{{reply}}</button>
+                <button class="cs-reply-button btn btn-link btn-sm">{{reply}}</button>
                 <div class="cs-reply-form"></div>
                 <div class="cs-replies"></div>
             </div>
         `;
-        postDiv.querySelector("button").onclick = () => expandReplyForm(postDiv, comment.id);
+        postDiv.querySelector("button").onclick = (event) => {
+            const expandReplyButton = event.target;
+            if (expandReplyButton.classList.contains("cs-collapsed")) {
+                clearReplyForm(postDiv);
+                expandReplyButton.classList.remove("cs-collapsed")
+            } else {
+                expandReplyForm(postDiv, comment.id);
+                expandReplyButton.classList.add("cs-collapsed")
+            }
+        };
 
         if (comment.replies !== undefined){
             const repliesDiv = postDiv.querySelector(".cs-replies");
@@ -125,6 +134,10 @@
         }
 
         return postDiv;
+    }
+    function clearReplyForm(postDiv) {
+        const replyForm = postDiv.querySelector(".cs-reply-form");
+        replyForm.innerHTML = ""
     }
     function expandReplyForm(postDiv, parentCommentId) {
         const replyForm = postDiv.querySelector(".cs-reply-form");
@@ -190,6 +203,4 @@
 })();
 
 //TODO reply: proper position of message
-//TODO css: don't indent on small devices
-//TODO collapse reply form again
 //TODO css-based animation for expending reply form
