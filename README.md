@@ -113,6 +113,17 @@ python3 -m unittest discover .
 ./test_comment_sidecar.py CommentSidecarTest.test_POST_comments_and_replies_and_GET_reply_chain 
 ```
 
+## Frontend
+
+I'm using a small Gulp script to utilize livereload in my browser during development.
+
+```bash
+# install gulp and gulp-livereload
+npm install
+# watch for changes and reload browser automatically
+npm run watch
+```
+
 ## See the Send Mails
 
 MailHog provides a neat Web UI. Just open [`http://localhost:8025/`](http://localhost:8025/) after calling `docker-compose up`.

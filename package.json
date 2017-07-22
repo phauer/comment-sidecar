@@ -1,0 +1,15 @@
+{
+  "name": "comment-sidecar",
+  "version": "1.0.0",
+  "description": "Lightweight, tracking-free, self-hosted comment service for web spaces only supporting PHP and MySQL",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "watch": "gulp watch"
+  },
+  "author": "Philipp Hauer",
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-livereload": "^3.8.1"
+  }
+}
