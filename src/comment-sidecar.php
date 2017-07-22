@@ -9,6 +9,7 @@ include_once "comment-sidecar-config.php";
 function main() {
     $method = $_SERVER['REQUEST_METHOD'];
     header('Content-Type: application/json');
+    setCORSHeader();
     try {
         switch ($method) {
             case 'GET': {
@@ -32,6 +33,15 @@ function main() {
             http_response_code(500);
             echo '{ "message" : "' . $ex->getMessage() . '" }';
         }
+    }
+}
+
+function setCORSHeader() {
+    $http_origin = $_SERVER['HTTP_ORIGIN'];
+    if (in_array($http_origin, ALLOWED_ACCESSING_SITES)) {
+        header("Access-Control-Allow-Origin: $http_origin");
+        header('Access-Control-Allow-Methods: GET, POST');
+        header('Access-Control-Allow-Headers: Content-Type');
     }
 }
 

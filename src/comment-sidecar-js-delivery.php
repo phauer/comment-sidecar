@@ -30,11 +30,8 @@ function deliverJsWithTranslationsAndPath(){
     $page = str_replace("{{SITE}}",SITE,$page);
 
     //set sidecar path
-    //assuming that "comment-sidecar-js-delivery.php" is placed in the same directory as "comment-sidecar.php"
-    $currentDir = dirname($_SERVER['REQUEST_URI']);
-    $currentDir = $currentDir === "/" ? $currentDir : $currentDir . "/";
-    $commentSidecarPath = "${currentDir}comment-sidecar.php";
-    $page = str_replace("{{BASE_PATH}}",$commentSidecarPath,$page);
+    $currentDir = BASE_URL;
+    $page = str_replace("{{BASE_PATH}}","${currentDir}comment-sidecar.php", $page);
 
     echo $page;
 }

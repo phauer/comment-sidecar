@@ -1,5 +1,5 @@
 - multi-site support
-    - CORS
+    - CORS - write test (at least test for existence of the headers)
     - security: check referer (browser ensures this even for AJAX requests)
 - pagination
 - rate limit - APUc usually not available on shared hosting

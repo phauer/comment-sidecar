@@ -52,6 +52,8 @@ Open `comment-sidecar-config.php` and configure it:
 const LANGUAGE = "en"; # see translations folder for supported languages
 const SITE = "domain.com"; # key for this site to identity comment of this site
 const E_MAIL_FOR_NOTIFICATIONS = "your.email@domain.com";
+const BASE_URL = "http://domainC.com/"; # base url of the comment-sidecar backend. can differ from the embedding site.
+const ALLOWED_ACCESSING_SITES = [ "http://domainA.com", "http://domainB.com" ]; # sites that are allowed to access the backend (required for multisite setups, where the backend is deployed on a different domain than the embedding site.)
 const DB_HOST = 'localhost'; # to access from host system, use 127.0.0.1
 const DB_NAME = 'wb3d23s';
 const DB_USER = 'wb3d23s';
@@ -68,7 +70,7 @@ Open the HTML file where you like to embed the comments. Insert the following sn
         const scriptNode = document.createElement('script');
         scriptNode.type = 'text/javascript';
         scriptNode.async = true;
-        scriptNode.src = '/comment-sidecar-js-delivery.php'; //adjust to the correct path
+        scriptNode.src = 'http://domainC.com/comment-sidecar-js-delivery.php'; //adjust to the correct path
         (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(scriptNode);
     })();
 </script>
@@ -125,6 +127,20 @@ npm run watch
 ```
 
 See [Browsersync command line usage](https://www.browsersync.io/docs/command-line) for more details.
+
+## Test Multi-site Scenarios and Different Origins
+
+You can use one deployed comment-side backend for multiple sites. So we different domains and have to take [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS) headers into account. To simulate this locally, use the proxy server of browsersync.
+
+```bash
+# the backend runs in the php container on port 80
+# let's start browsersync's proxy on port 3000
+npm run watch-with-proxy
+# open localhost:3000/playground.html in your browser
+# it will now try to communicate with the backend on port 80
+```
+
+Alternatively, you can use IntelliJ's built-in server. Just right-click on `playground.html` and select `Open in Browser`.
 
 ## See the Send Mails
 
