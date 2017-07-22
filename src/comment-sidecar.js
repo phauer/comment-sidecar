@@ -113,7 +113,7 @@
                     <span class="cs-date">${formatDate(comment.creationTimestamp)}</span>
                 </header>
                 <div class="cs-content">${contentWithBrTags}</div>
-                <button class="cs-reply-button btn btn-link btn-sm">{{reply}}</button>
+                <button class="cs-expand-button btn btn-link btn-sm">{{reply}}</button>
                 <div class="cs-form"></div>
                 <div class="cs-replies"></div>
             </div>
@@ -174,7 +174,7 @@
         const mainFormDiv = document.createElement('div');
         mainFormDiv.setAttribute("class", "cs-form-root");
         mainFormDiv.innerHTML = `
-            <button class="cs-reply-button btn btn-link">{{writeComment}}</button>
+            <button class="cs-expand-button btn btn-link">{{writeComment}}</button>
             <div class="cs-form"></div>
         `;
         mainFormDiv.querySelector("button").onclick = (event) => expandForm(event.target, mainFormDiv);

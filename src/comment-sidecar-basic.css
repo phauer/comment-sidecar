@@ -16,6 +16,9 @@ aside#comment-sidecar div.cs-avatar{
 aside#comment-sidecar div.cs-avatar img{
     border-radius: 150px;
 }
+aside#comment-sidecar div.cs-form-root {
+    margin-bottom: 5px;
+}
 aside#comment-sidecar div.cs-body {
     margin: 0px 0px 0px 80px;
 }
@@ -33,8 +36,9 @@ aside#comment-sidecar div.cs-body div.cs-content{
     padding: 5px 0px 5px 0px;
     margin: 5px 0px 0px 0px;
 }
-aside#comment-sidecar div.cs-body div.cs-reply-form {
+aside#comment-sidecar div.cs-form {
     padding: 5px;
+    margin-top: 5px;
 }
 aside#comment-sidecar div.cs-comment-list p{
     margin-top: 15px;
