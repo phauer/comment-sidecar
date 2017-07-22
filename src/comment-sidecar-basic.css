@@ -1,9 +1,14 @@
 aside#comment-sidecar div.cs-post {
-    margin: 35px 0px 15px 0px;
+    margin: 15px 0px 15px 0px;
+    clear: both;
+    min-height: 65px; /* correspond to avatar size */
 }
 aside#comment-sidecar div.cs-avatar{
     float: left;
-    padding: 0px 5px 0px 5px;
+    padding: 0px 10px 0px 5px;
+}
+aside#comment-sidecar div.cs-avatar img{
+    border-radius: 150px;
 }
 aside#comment-sidecar div.cs-body {
     margin: 0px 0px 0px 65px;

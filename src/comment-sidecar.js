@@ -101,7 +101,7 @@
         const postDiv = document.createElement('div');
         postDiv.setAttribute("class", "cs-post");
         postDiv.innerHTML = `
-            <div class="cs-avatar"><img src="${comment.gravatarUrl}?s=50&d=mm"/></div>
+            <div class="cs-avatar"><img src="${comment.gravatarUrl}?s=65&d=mm"/></div>
             <div class="cs-body">
                 <header class="cs-header">
                     <span class="cs-author">${comment.author}</span> 
