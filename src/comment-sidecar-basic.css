@@ -2,6 +2,7 @@ aside#comment-sidecar p.cs-title {
     font-size: 36px;
     margin: 20px 0px 10px 0px;
     text-align: left;
+    font-weight: bold;
 }
 aside#comment-sidecar div.cs-post {
     margin: 15px 0px 15px 0px;
