@@ -185,7 +185,7 @@
     }
 
     const commentAreaNode = document.querySelector("#comment-sidecar");
-    commentAreaNode.innerHTML = `<h1>{{comments}}</h1>`;
+    commentAreaNode.innerHTML = `<p class="cs-title">{{comments}}</p>`;
 
     commentAreaNode.appendChild(createFormNode());
 

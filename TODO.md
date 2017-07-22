@@ -1,3 +1,4 @@
+- paragraphs are not prevented!
 - multi-site support
     - CORS - write test (at least test for existence of the headers)
     - security: check referer (browser ensures this even for AJAX requests)
@@ -23,6 +24,7 @@
 - refactoring
     - use proper templating in comment-sidecar-js-delivery.php. maybe with php means, but prevent js tooling in IDE.
 - ui:
+    - save name and email in local webstorage -> no need to type it in again.
     - after comment -> scroll to submitted comment and highlight it!
 - unrelated:
     - md5 is very unsafe. use a spam email for gravatar! 
