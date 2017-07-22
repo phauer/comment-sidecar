@@ -1,4 +1,3 @@
-- paragraphs are not prevented!
 - multi-site support
     - CORS - write test (at least test for existence of the headers)
     - security: check referer (browser ensures this even for AJAX requests)

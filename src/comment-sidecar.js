@@ -104,6 +104,7 @@
         const postDiv = document.createElement('div');
         postDiv.setAttribute("class", "cs-post");
         postDiv.setAttribute("id", `cs-post-${comment.id}`);
+        const contentWithBrTags = comment.content.replace(/\n/g, "<br />");
         postDiv.innerHTML = `
             <div class="cs-avatar"><img src="${comment.gravatarUrl}?s=65&d=mm"/></div>
             <div class="cs-body">
@@ -111,7 +112,7 @@
                     <span class="cs-author">${comment.author}</span> 
                     <span class="cs-date">${formatDate(comment.creationTimestamp)}</span>
                 </header>
-                <div class="cs-content">${comment.content}</div>
+                <div class="cs-content">${contentWithBrTags}</div>
                 <button class="cs-reply-button btn btn-link btn-sm">{{reply}}</button>
                 <div class="cs-reply-form"></div>
                 <div class="cs-replies"></div>
