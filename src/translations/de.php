@@ -10,6 +10,7 @@ $translations = array(
 
     'submit' => 'Abschicken',
     'reply' => 'Antworten',
+    'writeComment' => 'Ein Kommentar schreiben...',
 
     'noCommentsYet' => 'Noch keine Kommentare. Sei der erste!',
     'successMessage' => 'Kommentar erfolgreich abgesendet.',

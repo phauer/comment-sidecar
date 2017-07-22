@@ -114,21 +114,11 @@
                 </header>
                 <div class="cs-content">${contentWithBrTags}</div>
                 <button class="cs-reply-button btn btn-link btn-sm">{{reply}}</button>
-                <div class="cs-reply-form"></div>
+                <div class="cs-form"></div>
                 <div class="cs-replies"></div>
             </div>
         `;
-        postDiv.querySelector("button").onclick = (event) => {
-            const expandReplyButton = event.target;
-            if (expandReplyButton.classList.contains("cs-collapsed")) {
-                clearReplyForm(postDiv);
-                expandReplyButton.classList.remove("cs-collapsed")
-            } else {
-                expandReplyForm(postDiv, comment.id);
-                expandReplyButton.classList.add("cs-collapsed")
-            }
-        };
-
+        postDiv.querySelector("button").onclick = (event) => expandForm(event.target, postDiv, comment.id);
         if (comment.replies !== undefined){
             const repliesDiv = postDiv.querySelector(".cs-replies");
             comment.replies.map(createNodeForComment).forEach(node => repliesDiv.appendChild(node));
@@ -136,13 +126,22 @@
 
         return postDiv;
     }
+    function expandForm(expandButton, formDiv, commentId) {
+        if (expandButton.classList.contains("cs-collapsed")) {
+            clearReplyForm(formDiv);
+            expandButton.classList.remove("cs-collapsed")
+        } else {
+            expandReplyForm(formDiv, commentId);
+            expandButton.classList.add("cs-collapsed")
+        }
+    }
     function clearReplyForm(postDiv) {
-        const replyForm = postDiv.querySelector(".cs-reply-form");
+        const replyForm = postDiv.querySelector(".cs-form");
         replyForm.innerHTML = ""
     }
     function expandReplyForm(postDiv, parentCommentId) {
-        const replyForm = postDiv.querySelector(".cs-reply-form");
-        replyForm.innerHTML = createFormHtml('{{reply}}');
+        const replyForm = postDiv.querySelector(".cs-form");
+        replyForm.innerHTML = createFormHtml('{{submit}}');
         replyForm.querySelector("button").onclick = () => submitComment(replyForm, parentCommentId);
     }
 
@@ -173,9 +172,12 @@
 
     function createFormNode() {
         const mainFormDiv = document.createElement('div');
-        mainFormDiv.setAttribute("class", "cs-form");
-        mainFormDiv.innerHTML = createFormHtml('{{submit}}');
-        mainFormDiv.querySelector("button").onclick = () => submitComment(mainFormDiv);
+        mainFormDiv.setAttribute("class", "cs-form-root");
+        mainFormDiv.innerHTML = `
+            <button class="cs-reply-button btn btn-link">{{writeComment}}</button>
+            <div class="cs-form"></div>
+        `;
+        mainFormDiv.querySelector("button").onclick = (event) => expandForm(event.target, mainFormDiv);
         return mainFormDiv;
     }
     function loadComments(){

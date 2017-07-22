@@ -23,6 +23,7 @@
 - refactoring
     - use proper templating in comment-sidecar-js-delivery.php. maybe with php means, but prevent js tooling in IDE.
 - ui:
+    - drop-down indicator for "Write a Comment" and "Reply"
     - save name and email in local webstorage -> no need to type it in again.
     - after comment -> scroll to submitted comment and highlight it!
 - unrelated:

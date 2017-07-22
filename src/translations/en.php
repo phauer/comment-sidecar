@@ -10,6 +10,7 @@ $translations = array(
 
     'submit' => 'Submit',
     'reply' => 'Reply',
+    'writeComment' => 'Write a Comment...',
 
     'noCommentsYet' => 'No comments yet. Be the first!',
     'successMessage' => 'Successfully submitted comment.',
