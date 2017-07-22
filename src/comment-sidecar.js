@@ -2,19 +2,19 @@
     const BASE_PATH = "{{BASE_PATH}}";
     const SITE = "{{SITE}}";
 
-    function handleResponse(response) {
+    function handleResponse(response, formDiv) {
         if (response.status === 201) {
-            const inputs = document.querySelectorAll("div.cs-form .form-control");
+            const inputs = formDiv.querySelectorAll("div.cs-form .form-control");
             inputs.forEach(input => input.value = "");
 
-            const element = document.querySelector(".cs-form-message");
+            const element = formDiv.querySelector(".cs-form-message");
             element.innerText = "{{successMessage}}";
             element.classList.remove("fail");
             element.classList.add("success");
 
             refresh();
         } else {
-            const element = document.querySelector(".cs-form-message");
+            const element = formDiv.querySelector(".cs-form-message");
             response.json().then(json => {
                 element.innerText = `{{failMessage}} ${json['message']}`;
             });
@@ -24,7 +24,7 @@
     }
     function markInvalidFieldsAndIsValid(formDiv) {
         let isValid = true;
-        const inputs = formDiv.querySelectorAll("div.cs-form .form-control");
+        const inputs = formDiv.querySelectorAll(".form-control:required");
         inputs.forEach(input => {
             if (input.value.trim().length === 0) {
                 input.parentNode.classList.add("has-error");
@@ -62,7 +62,7 @@
                 method: "POST",
                 body: JSON.stringify(payload)
             })
-            .then(handleResponse);
+            .then(response => handleResponse(response, formDiv));
         return false;
     }
     function createNodesForComments(comments) {
@@ -149,8 +149,8 @@
         return `
             <form>
               <div class="form-group">
-                <label for="cs-author" class="control-label">{{name}}:</label>
-                <input type="text" class="form-control cs-author">
+                <label for="cs-author" class="control-label">{{name}}*:</label>
+                <input type="text" class="form-control cs-author" required>
               </div>
               <div class="form-group">
                 <label for="cs-email" class="control-label">{{email}}:</label>
@@ -161,8 +161,8 @@
                 <input type="url" class="cs-url" name="url" placeholder="URL">
               </div>
               <div class="form-group">
-                <label for="cs-content" class="control-label">{{comment}}:</label>
-                <textarea class="form-control cs-content" rows="7"></textarea>
+                <label for="cs-content" class="control-label">{{comment}}*:</label>
+                <textarea class="form-control cs-content" rows="7" required></textarea>
               </div>
               <button type="submit" class="btn btn-primary">${buttonLabel}</button>
               <p class="cs-form-message"></p>
@@ -202,5 +202,4 @@
     refresh();
 })();
 
-//TODO reply: proper position of message
-//TODO css-based animation for expending reply form
+//TODO after comment -> scroll to submitted comment and highlight it!

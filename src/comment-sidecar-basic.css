@@ -24,7 +24,7 @@ aside#comment-sidecar div.cs-body header.cs-header span.cs-date{
     color: gray;
 }
 aside#comment-sidecar div.cs-body div.cs-content{
-    padding: 5px;
+    padding: 5px 0px 5px 0px;
     margin: 5px 0px 0px 0px;
 }
 aside#comment-sidecar div.cs-body div.cs-reply-form {
