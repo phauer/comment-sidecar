@@ -201,5 +201,3 @@
     };
     refresh();
 })();
-
-//TODO after comment -> scroll to submitted comment and highlight it!

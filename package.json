@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "watch-with-proxy": "browser-sync start --proxy 'localhost' --files 'src' --open '/playground.html'",
     "watch": "echo 'Open http://localhost/playground.html in your browser!' && browser-sync start --files 'src' --no-ui"
   },
   "author": "Philipp Hauer",

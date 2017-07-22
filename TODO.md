@@ -1,9 +1,8 @@
-- support reply in UI
-- rate limit
 - multi-site support
     - CORS
     - security: check referer (browser ensures this even for AJAX requests)
 - pagination
+- rate limit - APUc usually not available on shared hosting
 - network_mode = hosts (required for xdebug) makes sql queries extremely slow!
 - sql injection test
 - improve replyTo check: referring id has to be in the same site and path.
@@ -21,12 +20,16 @@
     - additional pw protection ("admin pw" or so). put in local webstorage for convenience?
         - enforce https?
     - moreover, only trash comments (set state to trashed/deleted). don't really delete it from db. reduces effects of an attack.
-- circle around avatars
+- refactoring
+    - use proper templating in comment-sidecar-js-delivery.php. maybe with php means, but prevent js tooling in IDE.
+- ui:
+    - after comment -> scroll to submitted comment and highlight it!
 - unrelated:
     - md5 is very unsafe. use a spam email for gravatar! 
 - make file to automate test execution and zipping of the relevant files 
 - only request for a gravatar image if there is an email.
 - markdown support
+- OpCache to store compiled php files. 
 
 # ideas: security means and spam protection
 
