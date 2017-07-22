@@ -1,8 +1,5 @@
-- multi-site support
-    - CORS - write test (at least test for existence of the headers)
-    - security: check referer (browser ensures this even for AJAX requests)
 - pagination
-- rate limit - APUc usually not available on shared hosting
+- rate limit (APUc not available on shared hosting)
 - network_mode = hosts (required for xdebug) makes sql queries extremely slow!
 - sql injection test
 - improve replyTo check: referring id has to be in the same site and path.

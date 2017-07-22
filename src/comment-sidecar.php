@@ -24,6 +24,11 @@ function main() {
                 echo ' { "id" : '. $createdId .' } ';
                 break;
             }
+            case 'OPTIONS': {
+                //preflight requests for CORS checks will appear, but the required headers have already been set.
+                //this case is just for documentation
+                break;
+            }
         }
     } catch (Exception $ex) {
         if ($ex instanceof InvalidRequestException) {

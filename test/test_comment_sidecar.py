@@ -2,6 +2,7 @@
 
 import MySQLdb # sudo apt install libmysqlclient-dev python-dev && pip3 install mysqlclient
 import requests # pip3 install requests
+from requests.models import Response
 import unittest
 import hashlib
 import time
@@ -154,6 +155,49 @@ class CommentSidecarTest(unittest.TestCase):
         returned_comment = get_response.json()[0]
         self.assertEqual(returned_comment["author"], post_payload["author"])
         self.assertEqual(returned_comment["content"], post_payload["content"])
+
+    def test_OPTIONS_CORS_headers_valid_origin(self):
+        # before sending a POST, the browser will send an OPTION request as a preflight to see the CORS headers.
+        # the backend will only return the required CORS headers, if the Origin is set to a allowed domain.
+        post_payload = create_post_payload()
+        valid_origin = 'http://testdomain.com'
+        preflight_response = requests.options(url=COMMENT_SIDECAR_URL, json=post_payload, headers={'Origin': valid_origin})
+        self.assertCORSHeadersExists(preflight_response, valid_origin)
+        self.assertEqual(preflight_response.text, "")
+        self.assertEqual(len(self.get_comments().json()), 0, "No comment should have been created after an OPTIONS request")
+
+    def test_OPTIONS_CORS_headers_invalid_origin(self):
+        post_payload = create_post_payload()
+        valid_origin = 'http://invalid.com'
+        preflight_response = requests.options(url=COMMENT_SIDECAR_URL, json=post_payload, headers={'Origin': valid_origin})
+        self.assertCORSHeadersDoesntExists(preflight_response)
+        self.assertEqual(preflight_response.text, "")
+        self.assertEqual(len(self.get_comments().json()), 0, "No comment should have been created after an OPTIONS request")
+
+    def test_GET_CORS_headers_valid_origin(self):
+        # for GETs, the browser will request immediately (without preflight), but will reject the response, if the CORS are not set.
+        # the backend will only return the required CORS headers, if the Origin is set to a allowed domain.
+        valid_origin = 'http://testdomain.com'
+        response = requests.get("{}?site={}&path={}".format(COMMENT_SIDECAR_URL, DEFAULT_SITE, DEFAULT_PATH), headers={'Origin': valid_origin})
+        self.assertCORSHeadersExists(response, valid_origin)
+
+    def test_GET_CORS_headers_invalid_origin(self):
+        valid_origin = 'http://invalid.com'
+        response = requests.get("{}?site={}&path={}".format(COMMENT_SIDECAR_URL, DEFAULT_SITE, DEFAULT_PATH), headers={'Origin': valid_origin})
+        self.assertCORSHeadersDoesntExists(response)
+
+    def assertCORSHeadersExists(self, preflight_response, exptected_allowed_origin):
+        self.assertTrue('Access-Control-Allow-Origin' in preflight_response.headers, "Access-Control-Allow-Origin not set!")
+        self.assertEqual(preflight_response.headers['Access-Control-Allow-Origin'], exptected_allowed_origin)
+        self.assertTrue('Access-Control-Allow-Methods' in preflight_response.headers, "Access-Control-Allow-Methods not set!")
+        self.assertEqual(preflight_response.headers['Access-Control-Allow-Methods'], 'GET, POST')
+        self.assertTrue('Access-Control-Allow-Headers' in preflight_response.headers, "Access-Control-Allow-Headers not set!")
+        self.assertEqual(preflight_response.headers['Access-Control-Allow-Headers'], 'Content-Type')
+
+    def assertCORSHeadersDoesntExists(self, preflight_response):
+        self.assertTrue('Access-Control-Allow-Origin' not in preflight_response.headers, "Access-Control-Allow-Origin is set!")
+        self.assertTrue('Access-Control-Allow-Methods' not in preflight_response.headers, "Access-Control-Allow-Methods is set!")
+        self.assertTrue('Access-Control-Allow-Headers' not in preflight_response.headers, "Access-Control-Allow-Headers is set!")
 
     def test_GET_different_paths(self):
         path_with_two_comments = "/post1/"
@@ -315,13 +359,13 @@ class CommentSidecarTest(unittest.TestCase):
         self.assertGreaterEqual(timestamp, start)
         self.assertLessEqual(timestamp, end)
 
-    def post_comment(self, post_payload, assert_success: bool=True):
+    def post_comment(self, post_payload, assert_success: bool=True) -> Response:
         response = requests.post(url=COMMENT_SIDECAR_URL, json=post_payload)
         if assert_success:
             self.assertEqual(response.status_code, 201, "Comment creation failed. Message: " + response.text)
         return response
 
-    def get_comments(self, site: str = DEFAULT_SITE, path: str = DEFAULT_PATH, assert_success:bool=True):
+    def get_comments(self, site: str = DEFAULT_SITE, path: str = DEFAULT_PATH, assert_success: bool=True) -> Response:
         response = requests.get("{}?site={}&path={}".format(COMMENT_SIDECAR_URL, site, path))
         if assert_success:
             self.assertEqual(response.status_code, 200, "Getting comments failed. Message: " + response.text)
