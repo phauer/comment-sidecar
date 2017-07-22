@@ -5,11 +5,10 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "watch": "gulp watch"
+    "watch": "echo 'Open http://localhost/playground.html in your browser!' && browser-sync start --files 'src' --no-ui"
   },
   "author": "Philipp Hauer",
   "devDependencies": {
-    "gulp": "^3.9.1",
-    "gulp-livereload": "^3.8.1"
+    "browser-sync": "^2.18.13"
   }
 }

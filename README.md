@@ -115,14 +115,16 @@ python3 -m unittest discover .
 
 ## Frontend
 
-I'm using a small Gulp script to utilize livereload in my browser during development.
+I'm using a [Browsersync](https://www.browsersync.io/) to automatically reload my browser during development.
 
 ```bash
-# install gulp and gulp-livereload
+# install browsersync
 npm install
 # watch for changes and reload browser automatically
 npm run watch
 ```
+
+See [Browsersync command line usage](https://www.browsersync.io/docs/command-line) for more details.
 
 ## See the Send Mails
 
