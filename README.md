@@ -12,9 +12,9 @@ The comment-sidecar is already used in production for one of my sites. So it's r
 
 - Tracking-free and fast. The comment-sidecar only needs one additional request. Contrary, Disqus leads to **110 additional requests**! Read [here](http://donw.io/post/github-comments/) for more details about Disqus' tracking greed and performance impact.
 - Privacy. Your data belongs to you.
-- Easy to integrate. Just a simple Javascript call. This makes is easy to use the comment-sidecar in conjunction with static site generators like **Hugo** or Jekyll. You don't have to integrate PHP code in the generated HTML files.
+- Easy to integrate. Just a simple Javascript call. This makes it easy to use the comment-sidecar in conjunction with static site generators like **Hugo** or Jekyll. You don't have to integrate PHP code in the generated HTML files.
 - Lightweight: No additional PHP or JavaScript dependencies. Just drop the files on your web server and you are good to go.
-- No account required. The visitors of your side don't need to have an account to drop a comment.
+- No account required. The visitors of your site don't need to have an account to drop a comment.
 - No performance impact on TTFB (Time To First Byte), because the comments are loaded asynchronously.
 - Spam Protection.
 - E-Mail Notification.
@@ -26,11 +26,11 @@ The comment-sidecar is already used in production for one of my sites. So it's r
 
 - PHP
 - A MySQL database
-- Some native [ECMAScript 6](http://es6-features.org/) support in the user's browser. For now, the comment-sidecar requires support for basic ECMAScript 6 features like [arrow functions](http://www.caniuse.com/#search=arrow), [`const`](http://www.caniuse.com/#search=const), [template literals](http://www.caniuse.com/#search=template) and other modern methods like [`querySelector()`](http://www.caniuse.com/#search=queryselector) and [`fetch()`](http://www.caniuse.com/#search=fetch). Currently, the supporting browser versions have a global usage of 73% - 98%. This was good enough for me. So I decided against a compilation with babel in order to avoid a dedicated build process. However, pull requests are always welcome. Alternatively, you can compile the `comment-sidecar.js` manually once only.
+- Some native [ECMAScript 6](http://es6-features.org/) support in the user's browser. For now, the comment-sidecar requires support for basic ECMAScript 6 features like [arrow functions](http://www.caniuse.com/#search=arrow), [`const`](http://www.caniuse.com/#search=const), [template literals](http://www.caniuse.com/#search=template) and other modern methods like [`querySelector()`](http://www.caniuse.com/#search=queryselector) and [`fetch()`](http://www.caniuse.com/#search=fetch). Currently, the supporting browser versions have a global usage of 73% - 98%. This was good enough for me. So I decided against a compilation with Babel in order to avoid a dedicated build process. However, pull requests are always welcome. Alternatively, you can compile the `comment-sidecar.js` manually once only.
 
 # Try it out up front!
 
-Do you want to try the comment-sidecar before you install it on your site? No problem! You only need Docker and Docker-Compose and your are ready to go.
+Do you want to try the comment-sidecar before you install it on your site? No problem! You only need Docker and Docker-Compose and you are ready to go.
  
 ```bash
 docker-compose up
@@ -46,7 +46,7 @@ Create a MySQL database and note the credentials.
 
 Create the required table and the index. Therefore, execute the SQL statements in  [`sql/create-comments-table.sql`](https://github.com/phauer/comment-sidecar/blob/master/sql/create-comments-table.sql) 
 
-Copy whole content of the `src` directory (except `playground.html`) to your webspace. You can put it wherever you like. Just remember the path. The following example assumes that all files are put in the root directory `/`.
+Copy whole content of the `src` directory (except `playground.html`) to your web space. You can put it wherever you like. Just remember the path. The following example assumes that all files are put in the root directory `/`.
 
 Open `comment-sidecar-config.php` and configure it:
 
@@ -120,7 +120,7 @@ python3 -m unittest discover .
 
 ## Frontend
 
-I'm using a [Browsersync](https://www.browsersync.io/) to automatically reload my browser during development.
+I'm using [Browsersync](https://www.browsersync.io/) to automatically reload my browser during development.
 
 ```bash
 # install browsersync
@@ -133,7 +133,7 @@ See [Browsersync command line usage](https://www.browsersync.io/docs/command-lin
 
 ## Test Multi-site Scenarios and Different Origins
 
-You can use one deployed comment-side backend for multiple sites. So we different domains and have to take [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS) headers into account. To simulate this locally, use the proxy server of browsersync.
+You can use one deployed comment-sidecar backend for multiple sites. So we different domains and have to take [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS) headers into account. To simulate this locally, use the proxy server of browsersync.
 
 ```bash
 # the backend runs in the php container on port 80
