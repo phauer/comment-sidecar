@@ -2,7 +2,7 @@
 
 comment-sidecar is a **lightweight, tracking-free, self-hosted comment service**. It aims at restricted self-hosted web spaces where only **PHP and MySQL** are available. And it is easy to embed into statically generated sites that are created with Hugo or Jekyll. It's a Disqus alternative.
 
-[![comment-sidecar frontend](screenshot-frontend-400.png)](screenshot-frontend.png)
+[![comment-sidecar frontend](screenshot-frontend-400.png)](https://raw.githubusercontent.com/phauer/comment-sidecar/master/screenshot-frontend.png)
  
 # Beta Version!
 
