@@ -1,8 +1,10 @@
-# Alpha Version!
-
 # comment-sidecar
 
 comment-sidecar is a **lightweight, tracking-free, self-hosted comment service**. It aims at restricted web spaces where only **PHP and MySQL** are available. And it is easy to embed into statically generated sites that are created with Hugo or Jekyll.
+ 
+# Beta Version!
+
+The comment-sidecar is already used in production for one of my sites. So it's ready for usage. However, there are still some things to do. First and foremost, pagination and a rate limiting approach have to be implemented. 
   
 # Features
 

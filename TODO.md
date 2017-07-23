@@ -1,8 +1,9 @@
 - pagination
-- rate limit (APUc not available on shared hosting)
+- rate limit (use dedicated table for this; POSTs are rare and can be a little slower; slow down attacker anyway)
+    - clean up job via web cron
 - network_mode = hosts (required for xdebug) makes sql queries extremely slow!
 - sql injection test
-- improve replyTo check: referring id has to be in the same site and path.
+- improve replyTo check: referring id has to be in the same site and path (separate post required for this)
 - watch comments -> get notified if someone replies to my comment
     - related issues: management of subscriptions? dedicated subscription table? check/uncheck notification when posting? unsubscribe link in mail? different table? -> postpone this feature!
     - add hint about this in the email field. "not published, but used for notification on replies and to display a gravatar avatar"
