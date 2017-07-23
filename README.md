@@ -95,7 +95,7 @@ docker-compose up -d
 http http://localhost/comment-sidecar.php
 http POST http://localhost/comment-sidecar.php < adhoc/comment-payload.json
 
-# develop in src/comment-sidecar.php. The changes take affect immediately. 
+# develop in src/comment-sidecar.php. The changes take effect immediately. 
 ```
 
 ## Run the Python Tests for the Backend
