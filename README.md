@@ -18,9 +18,10 @@ The comment-sidecar is already used in production for one of my sites. So it's r
 - No performance impact on TTFB (Time To First Byte), because the comments are loaded asynchronously.
 - Spam Protection.
 - E-Mail Notification.
-- Gravatar Support.
+- Gravatar support.
 - Use one comment-sidecar installation for multiple sites.
 - Replying to a comment is supported.
+- Multi-language support (pull requests adding more languages are highly welcome).
 
 # Requirements
 
@@ -38,7 +39,7 @@ docker-compose up
 
 This starts a MySQL database (which already contains the required table and index), [MailHog](https://github.com/mailhog/MailHog) (a test mail server) and an Apache with PHP.
 
-Now open [`http://localhost/playground.html`](http://localhost/playground.html) in your browser and play with the comment-sidecar in action. On [`http://localhost:8025/`](http://localhost:8025/) you can see the send notification mails.
+Now open [`http://localhost/playground.html`](http://localhost/playground.html) in your browser and play with the comment-sidecar in action. On [`http://localhost:8025/`](http://localhost:8025/) you can see the sent notification mails.
 
 # Installation
 
@@ -145,7 +146,7 @@ npm run watch-with-proxy
 
 Alternatively, you can use IntelliJ's built-in server. Just right-click on `playground.html` and select `Open in Browser`.
 
-## See the Send Mails
+## See the Sent Mails
 
 MailHog provides a neat Web UI. Just open [`http://localhost:8025/`](http://localhost:8025/) after calling `docker-compose up`.
 
