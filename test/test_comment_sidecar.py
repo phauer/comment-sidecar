@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 
-import MySQLdb # sudo apt install libmysqlclient-dev python-dev && pip3 install mysqlclient
-import requests # pip3 install requests
+# pip3 install -r requirements.txt
+import MySQLdb # requires: sudo apt install libmysqlclient-dev python-dev
+import requests
 from requests.models import Response
 import unittest
 import hashlib
 import time
-from path import Path # pip3 install path.py
+from path import Path
 
 DEFAULT_PATH = "/blogpost1/"
 DEFAULT_SITE = "petersworld.com"

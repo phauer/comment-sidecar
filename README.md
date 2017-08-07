@@ -108,7 +108,7 @@ docker-compose up -d
 # set up python environment
 python3 --version # you need at least python 3.5 to run the tests
 sudo apt install python3-pip libmysqlclient-dev python-dev
-pip3 install mysqlclient requests path.py
+pip3 install -r requirements.txt
 
 cd test
 # execute all tests:
