@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-# pip3 install -r requirements.txt
 import MySQLdb # requires: sudo apt install libmysqlclient-dev python-dev
 import requests
 from requests.models import Response

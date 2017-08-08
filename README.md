@@ -108,14 +108,13 @@ docker-compose up -d
 # set up python environment
 python3 --version # you need at least python 3.5 to run the tests
 sudo apt install python3-pip libmysqlclient-dev python-dev
-pip3 install -r requirements.txt
 
+# execute all tests
 cd test
-# execute all tests:
-python3 -m unittest discover . 
-# or only one test file: 
-./test_comment_sidecar.py
+make test
+
 # or only a single test:
+source .venv/bin/activate
 ./test_comment_sidecar.py CommentSidecarTest.test_POST_comments_and_replies_and_GET_reply_chain 
 ```
 
