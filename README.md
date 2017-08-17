@@ -155,28 +155,4 @@ Use host `127.0.0.1` instead of `localhost`! Port `3306`. Database `comment-side
 
 ## Debugging with IntelliJ IDEA/PhpStorm
 
-The PHP container contains already xdebug. You only have to set up IntelliJ IDEA Ultimate or PhpStorm.
-
-- Create a Run Configuration "PHP Remote Debug". You may need to click on "n items more (irrelevant)" to find this Run Configuration.
-- Create a new Server
-    - Name: docker (or so)
-    - Host: `localhost`
-    - Port: `80`
-    - Debugger: `Xdebug`
-    - Use path mappings: `src` -> `/var/www/html`
-- ide key(session id): `IDEA_DEBUG` (or everything you like; but remember this key)
-
-Start the Run Configuration and set a breakpoint. To trigger it, you have to append the query parameter `XDEBUG_SESSION_START=IDEA_DEBUG` to the URL when calling the service. e.g.
-
-```bash
-http "localhost/comment-sidecar.php?site=peterworld%2Ecom&path=%2Fblogpost1%2F&XDEBUG_SESSION_START=IDEA_DEBUG"
-``` 
-
-Other means (like browser extensions) can be found here: [Remote debugging with xdebug](https://xdebug.org/docs/remote).
-
-### Tips and Links for the Debug Setup
-
-- Does xdebug work at all in the container? Call [`http://localhost/phpinfo.php`](http://localhost/phpinfo.php) and check if xdebug is loaded and how it is configured. Other means can be found [here](https://stackoverflow.com/questions/14046501/check-if-xdebug-is-working) 
-- ['How to setup xdebug and phpstorm'](https://forums.docker.com/t/solved-how-to-setup-xdebug-and-phpstorm/13641/12) was very helpful to set up xdebug in this dockerized environment properly.
-- [Install xdebug](https://xdebug.org/docs/install) - just if you are curious.
-- Maybe ['Configuring xdebug in IDEA'](https://www.jetbrains.com/help/idea/configuring-xdebug.html) can also be helpful.
+A tutorial for set up remote debugging of PHP code executed in a Docker container can be found [here](https://blog.philipphauer.de/debug-php-docker-container-idea-phpstorm/). 
