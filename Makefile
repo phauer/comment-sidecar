@@ -6,11 +6,11 @@ all: test
 
 test: $(VENV)
 	$(ACTIVATE);\
-	python3 -m unittest discover .
+	python3 -m unittest discover test
 
 test-main: $(VENV)
 	$(ACTIVATE);\
-	python3 test_comment_sidecar.py
+	python3 test/test_comment_sidecar.py
 
 $(VENV):
 	python3 -m venv $(VENV)

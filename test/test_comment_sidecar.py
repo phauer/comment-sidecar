@@ -20,7 +20,7 @@ class CommentSidecarTest(unittest.TestCase):
         # first, run `docker-compose up`
         db = MySQLdb.connect(host='127.0.0.1', port=3306, user='root', passwd='root', db='comment-sidecar')
         cur = db.cursor()
-        with Path("../sql/create-comments-table.sql").open('r') as sql:
+        with Path("sql/create-comments-table.sql").open('r') as sql:
             query = "\n".join(sql.readlines())
             cur.execute(query)
 
