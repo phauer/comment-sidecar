@@ -22,6 +22,7 @@ The comment-sidecar is already used in production for one of my sites. So it's r
 - Use one comment-sidecar installation for multiple sites.
 - Replying to a comment is supported.
 - Multi-language support (pull requests adding more languages are highly welcome).
+- Import existing Disqus comments.
 
 # Requirements
 
