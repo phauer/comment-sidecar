@@ -8,7 +8,7 @@ all: test
 
 import: $(VENV)
 	$(ACTIVATE);\
-	python3 import/import_comments_from_disqus.py
+	python3 import/import_disqus_comments.py
 
 test: $(VENV)
 	$(ACTIVATE);\

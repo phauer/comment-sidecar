@@ -87,7 +87,7 @@ A complete example for the frontend can be found in [`src/playground.html`](http
 
 # Import Existing Disqus Comments into Comment-Sidecar
 
-**Warning**: This feature is experimental and has not been tested properly. For the brave, do the following: Open `migration/migrate_posts_from_disqus.py` and adjust the variables on the top of the file. You need an api key, which can be created [here](https://disqus.com/api/applications/register/). Then just call:
+**Warning**: This feature is experimental and has not been tested properly. For the brave, do the following: Open `import/import_disqus_comments.py` and adjust the variables on the top of the file. You need an api key, which can be created [here](https://disqus.com/api/applications/register/). Then just call:
 
 ```bash
 make import
