@@ -82,7 +82,15 @@ Open the HTML file where you like to embed the comments. Insert the following sn
 
 Optionally, you can include `comment-sidecar-basic.css` in the HTML header to get some basic styling. Or you can simply copy its content to your own CSS file in order to avoid a additional HTTP request.
 
-A complete example for the frontend can be found in [`src/playground.html`](https://github.com/phauer/comment-sidecar/blob/master/src/playground.html).  
+A complete example for the frontend can be found in [`src/playground.html`](https://github.com/phauer/comment-sidecar/blob/master/src/playground.html).
+
+# Import Existing Disqus Comments into Comment-Sidecar
+
+**Warning**: This feature is experimental and has not been tested properly. For the brave, do the following: Open `migration/migrate_posts_from_disqus.py` and adjust the variables on the top of the file. You need an api key, which can be created [here](https://disqus.com/api/applications/register/). Then just call:
+
+```bash
+make migrate
+``` 
 
 # Development
 

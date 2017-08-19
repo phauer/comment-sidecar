@@ -1,8 +1,14 @@
+.PHONY: all test import
+
 SHELL:=/bin/bash
 VENV:=.venv
 ACTIVATE=source $(VENV)/bin/activate
 
 all: test
+
+import: $(VENV)
+	$(ACTIVATE);\
+	python3 import/import_comments_from_disqus.py
 
 test: $(VENV)
 	$(ACTIVATE);\

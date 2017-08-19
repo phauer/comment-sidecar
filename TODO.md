@@ -1,6 +1,12 @@
+# prio 1
+
+- migration script from disqus.
+- subscriptions
 - pagination
-- rate limit (use dedicated table for this; POSTs are rare and can be a little slower; slow down attacker anyway)
-    - clean up job via web cron
+- rate limit (use dedicated table for this; POSTs are rare and can be a little slower; slow down attacker anyway). clean up job via web cron
+
+# prio 2
+
 - network_mode = hosts (required for xdebug) makes sql queries extremely slow!
 - sql injection test
 - improve replyTo check: referring id has to be in the same site and path (separate post required for this)
