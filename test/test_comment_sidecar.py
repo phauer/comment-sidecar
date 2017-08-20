@@ -48,7 +48,7 @@ class CommentSidecarTest(unittest.TestCase):
 
     def test_GET_empty_array_if_no_comments(self):
         response = get_comments()
-        self.assertEqual(response.text, '[]')
+        assert_that(response.text).is_equal_to('[]')
 
     def test_POST_and_GET_comment(self):
         post_payload = create_post_payload()
@@ -59,23 +59,17 @@ class CommentSidecarTest(unittest.TestCase):
 
         get_response = get_comments()
         comments_json = get_response.json()
-        self.assertEqual(len(comments_json), 1)
+        assert_that(comments_json).is_length(1)
 
         returned_comment = comments_json[0]
-        self.assertEqual(returned_comment["id"], "1")
-        self.assertEqual(returned_comment["author"], post_payload["author"])
-        self.assertEqual(returned_comment["content"], post_payload["content"])
+        assert_that(returned_comment["id"]).is_equal_to("1")
+        assert_that(returned_comment["author"]).is_equal_to(post_payload["author"])
+        assert_that(returned_comment["content"]).is_equal_to(post_payload["content"])
         gravatar_url = create_gravatar_url(post_payload["email"])
-        self.assertEqual(returned_comment["gravatarUrl"], gravatar_url)
+        assert_that(returned_comment["gravatarUrl"]).is_equal_to(gravatar_url)
         assert_timestamp_between(returned_comment["creationTimestamp"], start=timestamp_before, end=timestamp_after)
-        self.assertTrue("replies" not in returned_comment, "field 'replies' should not be in the payload. element: ".format(str(returned_comment)))
-        self.assertAbsentFields(returned_comment)
-
-    def assertAbsentFields(self, returned_comment):
-        self.assertTrue('email' not in returned_comment, "Don't send the email back to browser")
-        self.assertTrue('path' not in returned_comment, "Don't send the path to browser")
-        self.assertTrue('site' not in returned_comment, "Don't send the site to browser")
-        self.assertTrue('replyTo' not in returned_comment, "Don't send the replyTo to browser")
+        assert_that(returned_comment).does_not_contain_key('replies')
+        assert_absent_fields(returned_comment)
 
     def test_POST_comments_and_replies_and_GET_reply_chain(self):
         # for adhoc debugging: `http "localhost/comment-sidecar.php?site=peterworld%2Ecom&path=%2Fblogpost1%2F&XDEBUG_SESSION_START=IDEA_DEBUG"`
@@ -108,36 +102,27 @@ class CommentSidecarTest(unittest.TestCase):
 
         # check root comments
         returned_comments = get_response.json()
-        self.assertEqual(len(returned_comments), 1) # replies are nested so only one root comment
+        assert_that(returned_comments).is_length(1) # replies are nested so only one root comment
         replies = returned_comments[0]['replies']
 
         # check reply level 1
-        self.assertIsNotNone(replies)
-        self.assertEqual(len(replies), 2)
-        self.assertRepliesContains(replies, {
+        assert_that(replies).is_not_none().is_length(2)
+        assert_replies_contains(replies, {
             'content': 'reply 1 to root', 'id': '2', 'author': 'Peter',
         })
-        self.assertRepliesContains(replies, {
+        assert_replies_contains(replies, {
             'content': 'reply 2 to root', 'id': '3', 'author': 'Peter',
         })
         for reply in replies:
-            self.assertAbsentFields(reply)
+            assert_absent_fields(reply)
 
         # check reply level 2
         comment = get_comment_by_content(replies, 'reply 2 to root')
         replies_to_reply = comment['replies']
-        self.assertEqual(len(replies_to_reply), 1)
-        self.assertRepliesContains(replies_to_reply, {
+        assert_that(replies_to_reply).is_length(1)
+        assert_replies_contains(replies_to_reply, {
             'content': 'reply 3 to reply 2', 'id': '4', 'author': 'Peter',
         })
-
-    def assertRepliesContains(self, replies, assumed_element):
-        replies_matching_assumed_element = [reply for reply in replies
-                                            if reply['content'] == assumed_element['content']
-                                            and reply['id'] == assumed_element['id']
-                                            and reply['author'] == assumed_element['author']
-         ]
-        self.assertEqual(len(replies_matching_assumed_element), 1, "Element is not in the list (or more than once).\nassumed_element: {}\nall elements: {}\n".format(assumed_element, replies))
 
     def test_POST_invalid_replyTo_ID(self):
         post_payload = create_post_payload()
@@ -360,6 +345,22 @@ class CommentSidecarTest(unittest.TestCase):
         json = requests.get(MAILHOG_MESSAGES_URL).json()
         assert_no_mail_except_admin_mail(items=json['items'])
 
+def assert_replies_contains(replies, assumed_element):
+    replies_matching_assumed_element = [reply for reply in replies
+                                        if reply['content'] == assumed_element['content']
+                                        and reply['id'] == assumed_element['id']
+                                        and reply['author'] == assumed_element['author']
+                                        ]
+    assert_that(replies_matching_assumed_element) \
+        .described_as("Element is not in the list (or more than once).\nassumed_element: {}\nall elements: {}\n".format(assumed_element, replies)) \
+        .is_length(1)
+
+def assert_absent_fields(returned_comment):
+    assert_that(returned_comment).does_not_contain_key('email')\
+        .does_not_contain_key('path')\
+        .does_not_contain_key('site')\
+        .does_not_contain_key('replyTo')
+
 def clear_mails():
     response = requests.delete(MAILHOG_BASE_URL + 'v1/messages')
     assert_that(response.status_code).described_as("Test setup failed: Couldn't delete mails in mailhog.")\
@@ -399,8 +400,8 @@ def post_comment_to_long_field_and_assert_error(field: str, max_length: int):
 
 def assert_timestamp_between(creation_timestamp: str, start: int, end: int):
     timestamp = int(creation_timestamp)
-    assert_that(timestamp).is_greater_than_or_equal_to(start)
-    assert_that(timestamp).is_less_than_or_equal_to(end)
+    assert_that(timestamp).is_greater_than_or_equal_to(start)\
+        .is_less_than_or_equal_to(end)
 
 def post_comment(post_payload, assert_success: bool=True) -> Response:
     response = requests.post(url=COMMENT_SIDECAR_URL, json=post_payload)
