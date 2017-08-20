@@ -7,7 +7,9 @@ import unittest
 import hashlib
 import time
 from path import Path
+from assertpy import assert_that, fail
 
+ADMIN_EMAIL = 'test@localhost.de'
 DEFAULT_PATH = "/blogpost1/"
 DEFAULT_SITE = "petersworld.com"
 INVALID_QUERY_PARAMS = "Please submit both query parameters 'site' and 'path'"
@@ -20,7 +22,7 @@ class CommentSidecarTest(unittest.TestCase):
         # first, run `docker-compose up`
         db = MySQLdb.connect(host='127.0.0.1', port=3306, user='root', passwd='root', db='comment-sidecar')
         cur = db.cursor()
-        with Path("sql/create-comments-table.sql").open('r') as sql:
+        with get_sql_file_path().open('r') as sql:
             query = "\n".join(sql.readlines())
             cur.execute(query)
 
@@ -289,7 +291,7 @@ class CommentSidecarTest(unittest.TestCase):
         self.assertEqual(headers['Mime-Version'][0], '1.0')
         self.assertEqual(headers['From'][0], '{}<{}>'.format(post_payload['author'], post_payload['email']))
         self.assertEqual(headers['Subject'][0], 'Comment by {} on {}'.format(post_payload['author'], post_payload['path']))
-        self.assertEqual(headers['To'][0], 'test@localhost.de')
+        self.assertEqual(headers['To'][0], ADMIN_EMAIL)
 
     def test_no_email_notification_after_invalid_POST(self):
         self.clear_mails()
@@ -317,6 +319,46 @@ class CommentSidecarTest(unittest.TestCase):
         returned_json = self.get_comments().json()[0]
         self.assertEqual(returned_json['author'], '&lt;strong&gt;Peter&lt;/strong&gt;')
         self.assertEqual(returned_json['content'], '&lt;script type=&quot;text/javascript&quot;&gt;document.querySelector(&quot;aside#comment-sidecar h1&quot;).innerText = &quot;XSS&quot;;&lt;/script&gt;')
+
+    def test_subscription_mail_on_reply(self):
+        self.clear_mails()
+        root_payload = create_post_payload()
+        root_payload["email"] = "root@root.com"
+        response = self.post_comment(root_payload)
+        root_id = response.json()['id']
+
+        reply_payload = create_post_payload()
+        reply_payload["replyTo"] = root_id
+        reply_payload["content"] = "Root, I disagree!"
+        reply_payload["email"] = "reply@reply.com!"
+        reply_payload["author"] = "Replyer"
+        self.post_comment(reply_payload)
+
+        json = requests.get(MAILHOG_MESSAGES_URL).json()
+        assert_that(json['total']).is_greater_than(1)
+
+        assert_mail_exists(items=json['items'],
+                           expected_body=reply_payload["content"],
+                           expected_from=reply_payload["author"], # don't reveal replyer's email to notified parent author
+                           expected_subject="Reply to your comment by {} on /blogpost1/".format(reply_payload["author"]),
+                           expected_to=root_payload["email"])
+
+    def test_subscription_no_mail_on_reply_if_no_parent_mail_defined(self):
+        self.clear_mails()
+        root_payload = create_post_payload()
+        root_payload.pop('email')
+        response = self.post_comment(root_payload)
+        root_id = response.json()['id']
+
+        reply_payload = create_post_payload()
+        reply_payload["replyTo"] = root_id
+        reply_payload["content"] = "Root, I disagree!"
+        reply_payload["email"] = "reply@reply.com!"
+        reply_payload["author"] = "Replyer"
+        self.post_comment(reply_payload)
+
+        json = requests.get(MAILHOG_MESSAGES_URL).json()
+        assert_no_mail_except_admin_mail(items=json['items'])
 
     def clear_mails(self):
         response = requests.delete(MAILHOG_BASE_URL + 'v1/messages')
@@ -391,6 +433,31 @@ def create_gravatar_url(email: str) -> str:
     md5.update(email.strip().lower().encode())
     return "https://www.gravatar.com/avatar/" + md5.hexdigest()
 
+def assert_mail_exists(items, expected_body, expected_from, expected_subject, expected_to):
+    for item in items:
+        content = item['Content']
+        headers = content['Headers']
+        if content['Body'] == expected_body \
+                and headers['From'][0] == expected_from \
+                and headers['Subject'][0] == expected_subject \
+                and headers['To'][0] == expected_to:
+            return
+    expected_mail = "({}; {}; {}; {})".format(expected_body, expected_from, expected_subject, expected_to)
+    actual_mails = ["({}; {}; {}; {})".format(item['Content']['Body'], item['Content']['Headers']['From'][0], item['Content']['Headers']['Subject'][0], item['Content']['Headers']['To'][0]) for item in items]
+    fail("No mail was sent to the author of a comment that was replied to.\nExpected mail:\n{}\nbut found only:\n{}".format(expected_mail, "\n".join(actual_mails)))
+
+def assert_no_mail_except_admin_mail(items):
+    for item in items:
+        to = item['Content']['Headers']['To'][0]
+        if to != ADMIN_EMAIL:
+            actual_mail = "({}; {}; {}; {})".format(item['Content']['Body'], item['Content']['Headers']['From'][0], item['Content']['Headers']['Subject'][0], item['Content']['Headers']['To'][0])
+            fail("A mail was sent (despite the admin notification) but that shouldn't happen! " + actual_mail)
+
+def get_sql_file_path():
+    path = Path("sql/create-comments-table.sql") # if invoked via make in project root
+    if path.exists():
+        return path
+    return Path("../sql/create-comments-table.sql") # if invoked directly in the IDE
 
 if __name__ == '__main__':
     unittest.main()

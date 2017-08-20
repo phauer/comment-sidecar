@@ -5,7 +5,7 @@ import random
 
 DEFAULT_PATH = "/playground.html"
 DEFAULT_SITE = "localhost"
-COMMENT_SIDECAR_URL = 'http://localhost/comment-sidecar.php'
+COMMENT_SIDECAR_URL = 'http://localhost/comment-sidecar.php?XDEBUG_SESSION_START=IDEA_DEBUG'
 
 NAMES = ['Peter', 'Albert', 'James', 'Max', 'Florian', 'Thomas']
 
@@ -16,11 +16,11 @@ def generate_payload():
         "creationTimestamp": random.randint(1449604757, 1499604757),
         "email": "host@localhost.com",
         "path": DEFAULT_PATH,
-        "replyTo": None,
+        "replyTo": 1,
         "site": DEFAULT_SITE
     }
 
-for _ in range(5):
+for _ in range(3):
     post_payload = generate_payload()
     post_response = requests.post(url=COMMENT_SIDECAR_URL, json=post_payload)
     print("Posted payload")

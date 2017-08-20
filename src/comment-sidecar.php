@@ -19,7 +19,10 @@ function main() {
             case 'POST': {
                 $comment = json_decode(file_get_contents('php://input'),true);
                 $createdId = createComment($comment);
-                sendNotificationViaMail($comment);
+                sendNotificationToAdminViaMail($comment);
+                if (isset($comment["replyTo"])){
+                    sendNotificationToParentAuthorViaMail($comment);
+                }
                 http_response_code(201);
                 echo ' { "id" : '. $createdId .' } ';
                 break;
@@ -127,15 +130,18 @@ function createComment($comment) {
         checkForSpam($comment);
         validatePostedComment($comment);
         $handler = connect();
-        $stmt = $handler->prepare("INSERT INTO comments (author, email, content, reply_to, site, path, creation_date) VALUES (:author, :email, :content, :reply_to, :site, :path, now());");
+        $stmt = $handler->prepare("INSERT INTO comments (author, email, content, reply_to, site, path, subscribed, unsubscribe_token, creation_date) VALUES (:author, :email, :content, :reply_to, :site, :path, :subscribed, :unsubscribe_token, now());");
         $author = htmlspecialchars($comment["author"]);
         $content = htmlspecialchars($comment["content"]);
+        $subscribed = (isset($comment["email"]) and !empty(trim($comment['email'])));
         $stmt->bindParam(':author', $author);
         $stmt->bindParam(':email', $comment["email"]); // optional. can be null
         $stmt->bindParam(':content', $content);
         $stmt->bindParam(':reply_to', $comment['replyTo']);
         $stmt->bindParam(':site', $comment["site"]);
         $stmt->bindParam(':path', $comment["path"]);
+        $stmt->bindValue(':subscribed', $subscribed, PDO::PARAM_BOOL);
+        $stmt->bindValue(':unsubscribe_token', generateRandomString(10));
         $stmt->execute();
         $createdId = $handler->lastInsertId();
         $handler = null; //close connection
@@ -146,6 +152,10 @@ function createComment($comment) {
         }
         throw $ex;
     }
+}
+
+function generateRandomString($length = 10) {
+    return substr(str_shuffle(str_repeat($x='0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', ceil($length/strlen($x)) )),1,$length);
 }
 
 function checkForSpam($comment) {
@@ -177,14 +187,8 @@ function checkExistence($comment, $field) {
     }
 }
 
-function sendNotificationViaMail($comment) {
+function sendNotificationToAdminViaMail($comment) {
     $author = $comment['author'];
-    $headers = "From: $author<${comment['email']}>\n";
-    $headers .= "Mime-Version: 1.0\n";
-    $headers .= "Content-Type: text/plain; charset=UTF-8\n";
-    $headers .= "Content-Transfer-Encoding: 8bit\n";
-    $headers .= "X-Mailer: PHP ".phpversion();
-
     $path = $comment["path"];
     $site = $comment["site"];
     $message = "
@@ -192,9 +196,42 @@ function sendNotificationViaMail($comment) {
     Path: $path
     Message: ${comment["content"]}
     ";
-
     $subject = "Comment by $author on $path";
-    mail(E_MAIL_FOR_NOTIFICATIONS, $subject, $message, $headers);
+    sendMail(E_MAIL_FOR_NOTIFICATIONS, $comment['author'], $comment['email'], $message, $subject);
+}
+
+function sendNotificationToParentAuthorViaMail($new_comment){
+    $parents_email = find_parent_author_email($new_comment["replyTo"]);
+    if ($parents_email !== null) {
+        $author = $new_comment['author'];
+        $path = $new_comment["path"];
+        $subject = "Reply to your comment by $author on $path";
+        sendMail($parents_email, $new_comment['author'], null, $new_comment["content"], $subject);
+    }
+}
+
+function sendMail($toMail, $fromName, $fromEmail, $message, $subject){
+    $from = (isset($fromEmail) and !empty($fromEmail)) ? "$fromName<${fromEmail}>" : "$fromName";
+    $headers = "From: ${from}\n";
+    $headers .= "Mime-Version: 1.0\n";
+    $headers .= "Content-Type: text/plain; charset=UTF-8\n";
+    $headers .= "Content-Transfer-Encoding: 8bit\n";
+    $headers .= "X-Mailer: PHP ".phpversion();
+    mail($toMail, $subject, $message, $headers);
+}
+
+function find_parent_author_email($parentCommentId) {
+    $handler = connect();
+    $stmt = $handler->prepare("SELECT email FROM comments WHERE id = :parent_comment_id AND subscribed = true");
+    $stmt->bindParam(':parent_comment_id', $parentCommentId);
+    $stmt->execute();
+    if ($stmt->rowCount() == 0){
+        return null;
+    }
+    $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $email = $results[0]['email'];
+    $handler = null; //close connection
+    return $email;
 }
 
 class InvalidRequestException extends Exception {}

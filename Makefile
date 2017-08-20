@@ -3,6 +3,7 @@
 SHELL:=/bin/bash
 VENV:=.venv
 ACTIVATE=source $(VENV)/bin/activate
+test?=test_POST_and_GET_comment
 
 all: test
 
@@ -17,6 +18,10 @@ test: $(VENV)
 test-main: $(VENV)
 	$(ACTIVATE);\
 	python3 test/test_comment_sidecar.py
+
+test-single: $(VENV)
+	$(ACTIVATE);\
+	python3 test/test_comment_sidecar.py CommentSidecarTest.$(test)
 
 $(VENV):
 	python3 -m venv $(VENV)

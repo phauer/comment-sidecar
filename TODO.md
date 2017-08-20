@@ -1,12 +1,17 @@
 # prio 1
 
 - subscriptions
+    - unsubscribe
+        - then add test: no mail for reply (if root has mail but has unsubscribed)
+    - beautify email
+    - translate
 - test import script with IT blog
 - pagination
 - rate limit (use dedicated table for this; POSTs are rare and can be a little slower; slow down attacker anyway). clean up job via web cron
 
 # prio 2
 
+- migrate tests to assertpy
 - network_mode = hosts (required for xdebug) makes sql queries extremely slow!
 - sql injection test
 - improve replyTo check: referring id has to be in the same site and path (separate post required for this)
