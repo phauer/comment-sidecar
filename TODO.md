@@ -1,10 +1,6 @@
 # prio 1
 
 - subscriptions
-    - unsubscribe
-        - then add test: no mail for reply (if root has mail but has unsubscribed)
-        - subscribe http endpoint:
-            - disable subscription twice? behaviour? (clicking multiple times on the link)
     - beautify email
     - translate
     - add unsubscribe link to mail + test for it!
