@@ -4,7 +4,9 @@ include_once "comment-sidecar-config.php";
 /**
  * HTTP endpoints
  * GET comment-sidecar.php?site=<site>&path=<path>
+ *      get comments
  * POST comment-sidecar.php with comment JSON
+ *      create a new comment
  */
 function main() {
     $method = $_SERVER['REQUEST_METHOD'];
@@ -55,12 +57,6 @@ function setCORSHeader() {
 
 function isInvalidReplyToId($ex){
     return strpos($ex->getMessage(), 'replyTo_refers_to_existing_id') !== false;
-}
-
-function connect() {
-    $handler = new PDO("mysql:host=".DB_HOST.":".DB_PORT.";dbname=".DB_NAME.";charset=utf8", DB_USER, DB_PW);
-    $handler->setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION );
-    return $handler;
 }
 
 function getCommentsAsJson() {

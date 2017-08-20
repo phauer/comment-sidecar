@@ -9,19 +9,24 @@ import time
 from path import Path
 from assertpy import assert_that, fail
 
+UNSUBSCRIBE_SUCCESS_MSG = "You have been unsubscribed successfully."
+UNSUBSCRIBE_ERROR_MSG = "Nothing has been updated. Either the comment doesn't exist or the unsubscribe token is invalid."
 ADMIN_EMAIL = 'test@localhost.de'
 DEFAULT_PATH = "/blogpost1/"
 DEFAULT_SITE = "petersworld.com"
 INVALID_QUERY_PARAMS = "Please submit both query parameters 'site' and 'path'"
+INVALID_QUERY_PARAMS_UNSUBSCRIBE = "Please submit both query parameters 'comment_id' and 'unsubscribe_token'"
 COMMENT_SIDECAR_URL = 'http://localhost/comment-sidecar.php'
+UNSUBSCRIBE_URL = 'http://localhost/unsubscribe.php'
 MAILHOG_BASE_URL = 'http://localhost:8025/api/'
 MAILHOG_MESSAGES_URL = MAILHOG_BASE_URL + 'v2/messages'
+MYSQLDB_CONNECTION = {'host': '127.0.0.1', 'port': 3306, 'user': 'root', 'passwd': 'root', 'db': 'comment-sidecar'}
 
 class CommentSidecarTest(unittest.TestCase):
     def setUp(self):
         # first, run `docker-compose up`
-        db = MySQLdb.connect(host='127.0.0.1', port=3306, user='root', passwd='root', db='comment-sidecar')
-        cur = db.cursor()
+        self.db = MySQLdb.connect(**MYSQLDB_CONNECTION)
+        cur = self.db.cursor()
         with get_sql_file_path().open('r') as sql:
             query = "\n".join(sql.readlines())
             cur.execute(query)
@@ -339,6 +344,77 @@ class CommentSidecarTest(unittest.TestCase):
 
         json = requests.get(MAILHOG_MESSAGES_URL).json()
         assert_no_mail_except_admin_mail(items=json['items'])
+
+    def test_unsubscribe_missing_parameter(self):
+        unsubscribe_with_url_assert_error('{}'.format(UNSUBSCRIBE_URL))
+        unsubscribe_with_url_assert_error('{}?commentId={}'.format(UNSUBSCRIBE_URL, 1))
+        unsubscribe_with_url_assert_error('{}?unsubscribeToken={}'.format(UNSUBSCRIBE_URL, '12391023'))
+
+    def test_unsubscribe(self):
+        payload = create_post_payload()
+        response = post_comment(payload)
+        id = response.json()["id"]
+        assume_subscription_state_in_db(id, True)
+        unsubscribe_token = retrieve_unsubscribe_token_from_db(id)
+        response = unsubscribe(id, unsubscribe_token)
+        assert_that(response.text).is_equal_to(UNSUBSCRIBE_SUCCESS_MSG)
+        assume_subscription_state_in_db(id, False)
+
+    def test_unsubscribe_twice(self):
+        payload = create_post_payload()
+        response = post_comment(payload)
+        id = response.json()["id"]
+        assume_subscription_state_in_db(id, True)
+        unsubscribe_token = retrieve_unsubscribe_token_from_db(id)
+        unsubscribe(id, unsubscribe_token)
+        response = unsubscribe(id, unsubscribe_token)
+        assert_that(response.text).is_equal_to(UNSUBSCRIBE_ERROR_MSG)
+        assume_subscription_state_in_db(id, False)
+
+    def test_unsubscribe_wrong_token(self):
+        payload = create_post_payload()
+        response = post_comment(payload)
+        id = response.json()["id"]
+        assume_subscription_state_in_db(id, True)
+        invalid_unsubscribe_token = "1111jd"
+        response = unsubscribe(id, invalid_unsubscribe_token)
+        assert_that(response.text).is_equal_to(UNSUBSCRIBE_ERROR_MSG)
+        assume_subscription_state_in_db(id, True)
+
+    def test_unsubscribe_wrong_id(self):
+        payload = create_post_payload()
+        response = post_comment(payload)
+        id = response.json()["id"]
+        unsubscribe_token = retrieve_unsubscribe_token_from_db(id)
+        response = unsubscribe(123, unsubscribe_token)
+        assert_that(response.text).is_equal_to(UNSUBSCRIBE_ERROR_MSG)
+
+def assume_subscription_state_in_db(comment_id, expected_subscription_state):
+    db = MySQLdb.connect(**MYSQLDB_CONNECTION)
+    cur = db.cursor()
+    cur.execute("SELECT subscribed FROM comments WHERE id = {}".format(comment_id))
+    subscribed = cur.fetchone()[0]
+    if expected_subscription_state:
+        assert_that(subscribed).described_as('subscribed state').is_equal_to(1)
+    else:
+        assert_that(subscribed).described_as('subscribed state').is_equal_to(0)
+
+def retrieve_unsubscribe_token_from_db(comment_id):
+    db = MySQLdb.connect(**MYSQLDB_CONNECTION)
+    cur = db.cursor()
+    cur.execute("SELECT unsubscribe_token FROM comments WHERE id = {}".format(comment_id))
+    return cur.fetchone()[0]
+
+def unsubscribe(comment_id, unsubscribe_token):
+    response = requests.get(url='{}?commentId={}&unsubscribeToken={}&XDEBUG_SESSION_START=IDEA_DEBUG'.format(UNSUBSCRIBE_URL, comment_id, unsubscribe_token))
+    assert_that(response).has_status_code(200)
+    return response
+
+def unsubscribe_with_url_assert_error(url):
+    response = requests.get(url)
+    assert_that(response).has_status_code(400)
+    assert_that(response.json()['message']).is_equal_to(INVALID_QUERY_PARAMS_UNSUBSCRIBE)
+
 
 def assert_cors_headers_exists(preflight_response, exptected_allowed_origin):
     assert_that(preflight_response.headers)\
