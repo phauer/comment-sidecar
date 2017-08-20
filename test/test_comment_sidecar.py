@@ -62,13 +62,13 @@ class CommentSidecarTest(unittest.TestCase):
         assert_that(comments_json).is_length(1)
 
         returned_comment = comments_json[0]
-        assert_that(returned_comment["id"]).is_equal_to("1")
-        assert_that(returned_comment["author"]).is_equal_to(post_payload["author"])
-        assert_that(returned_comment["content"]).is_equal_to(post_payload["content"])
-        gravatar_url = create_gravatar_url(post_payload["email"])
-        assert_that(returned_comment["gravatarUrl"]).is_equal_to(gravatar_url)
+        assert_that(returned_comment)\
+            .contains_entry({'id': '1'})\
+            .contains_entry({'author': post_payload["author"]})\
+            .contains_entry({'content': post_payload["content"]})\
+            .contains_entry({'gravatarUrl': create_gravatar_url(post_payload["email"])}) \
+            .does_not_contain_key('replies')
         assert_timestamp_between(returned_comment["creationTimestamp"], start=timestamp_before, end=timestamp_after)
-        assert_that(returned_comment).does_not_contain_key('replies')
         assert_absent_fields(returned_comment)
 
     def test_POST_comments_and_replies_and_GET_reply_chain(self):
@@ -128,8 +128,8 @@ class CommentSidecarTest(unittest.TestCase):
         post_payload = create_post_payload()
         post_payload['replyTo'] = '989089'
         response = post_comment(post_payload, assert_success=False)
-        self.assertEqual(response.status_code, 400, "Invalid replyTo ID should be rejected.")
-        self.assertEqual(response.json()['message'], "The replyTo value '989089' refers to a not existing id.")
+        assert_that(response.status_code).described_as("Invalid replyTo ID should be rejected.").is_equal_to(400)
+        assert_that(response.json()['message']).is_equal_to("The replyTo value '989089' refers to a not existing id.")
 
     def test_POST_and_GET_comment_with_german_umlauts(self):
         post_payload = create_post_payload()
@@ -140,8 +140,9 @@ class CommentSidecarTest(unittest.TestCase):
 
         get_response = get_comments()
         returned_comment = get_response.json()[0]
-        self.assertEqual(returned_comment["author"], post_payload["author"])
-        self.assertEqual(returned_comment["content"], post_payload["content"])
+        assert_that(returned_comment)\
+            .contains_entry({'author': post_payload["author"]})\
+            .contains_entry({'content': post_payload["content"]})
 
     def test_OPTIONS_CORS_headers_valid_origin(self):
         # before sending a POST, the browser will send an OPTION request as a preflight to see the CORS headers.
@@ -149,42 +150,33 @@ class CommentSidecarTest(unittest.TestCase):
         post_payload = create_post_payload()
         valid_origin = 'http://testdomain.com'
         preflight_response = requests.options(url=COMMENT_SIDECAR_URL, json=post_payload, headers={'Origin': valid_origin})
-        self.assertCORSHeadersExists(preflight_response, valid_origin)
-        self.assertEqual(preflight_response.text, "")
-        self.assertEqual(len(get_comments().json()), 0, "No comment should have been created after an OPTIONS request")
+        assert_cors_headers_exists(preflight_response, valid_origin)
+        assert_that(preflight_response.text).is_empty()
+        assert_that(get_comments().json())\
+            .described_as("No comment should have been created after an OPTIONS request")\
+            .is_empty()
 
     def test_OPTIONS_CORS_headers_invalid_origin(self):
         post_payload = create_post_payload()
         valid_origin = 'http://invalid.com'
         preflight_response = requests.options(url=COMMENT_SIDECAR_URL, json=post_payload, headers={'Origin': valid_origin})
-        self.assertCORSHeadersDoesntExists(preflight_response)
-        self.assertEqual(preflight_response.text, "")
-        self.assertEqual(len(get_comments().json()), 0, "No comment should have been created after an OPTIONS request")
+        assert_cors_headers_doesnt_exists(preflight_response)
+        assert_that(preflight_response.text).is_empty()
+        assert_that(get_comments().json()) \
+            .described_as("No comment should have been created after an OPTIONS request") \
+            .is_empty()
 
     def test_GET_CORS_headers_valid_origin(self):
         # for GETs, the browser will request immediately (without preflight), but will reject the response, if the CORS are not set.
         # the backend will only return the required CORS headers, if the Origin is set to a allowed domain.
         valid_origin = 'http://testdomain.com'
         response = requests.get("{}?site={}&path={}".format(COMMENT_SIDECAR_URL, DEFAULT_SITE, DEFAULT_PATH), headers={'Origin': valid_origin})
-        self.assertCORSHeadersExists(response, valid_origin)
+        assert_cors_headers_exists(response, valid_origin)
 
     def test_GET_CORS_headers_invalid_origin(self):
         valid_origin = 'http://invalid.com'
         response = requests.get("{}?site={}&path={}".format(COMMENT_SIDECAR_URL, DEFAULT_SITE, DEFAULT_PATH), headers={'Origin': valid_origin})
-        self.assertCORSHeadersDoesntExists(response)
-
-    def assertCORSHeadersExists(self, preflight_response, exptected_allowed_origin):
-        self.assertTrue('Access-Control-Allow-Origin' in preflight_response.headers, "Access-Control-Allow-Origin not set!")
-        self.assertEqual(preflight_response.headers['Access-Control-Allow-Origin'], exptected_allowed_origin)
-        self.assertTrue('Access-Control-Allow-Methods' in preflight_response.headers, "Access-Control-Allow-Methods not set!")
-        self.assertEqual(preflight_response.headers['Access-Control-Allow-Methods'], 'GET, POST')
-        self.assertTrue('Access-Control-Allow-Headers' in preflight_response.headers, "Access-Control-Allow-Headers not set!")
-        self.assertEqual(preflight_response.headers['Access-Control-Allow-Headers'], 'Content-Type')
-
-    def assertCORSHeadersDoesntExists(self, preflight_response):
-        self.assertTrue('Access-Control-Allow-Origin' not in preflight_response.headers, "Access-Control-Allow-Origin is set!")
-        self.assertTrue('Access-Control-Allow-Methods' not in preflight_response.headers, "Access-Control-Allow-Methods is set!")
-        self.assertTrue('Access-Control-Allow-Headers' not in preflight_response.headers, "Access-Control-Allow-Headers is set!")
+        assert_cors_headers_doesnt_exists(response)
 
     def test_GET_different_paths(self):
         path_with_two_comments = "/post1/"
@@ -254,8 +246,10 @@ class CommentSidecarTest(unittest.TestCase):
         post_payload = create_post_payload()
         post_payload['url'] = 'http://only.spambots.will/populate/this/field/'
         response = post_comment(post_payload, assert_success=False)
-        self.assertEqual(response.status_code, 400, "POST payload with an URL field should be rejected. The URL an hidden form field and used for spam protection.")
-        self.assertEqual(response.json()['message'], "")
+        assert_that(response.status_code)\
+            .described_as("POST payload with an URL field should be rejected. The URL an hidden form field and used for spam protection.")\
+            .is_equal_to(400)
+        assert_that(response.json()['message']).is_empty()
 
     def test_email_notification_after_successful_POST(self):
         clear_mails()
@@ -264,19 +258,19 @@ class CommentSidecarTest(unittest.TestCase):
         post_comment(post_payload)
 
         json = requests.get(MAILHOG_MESSAGES_URL).json()
-        self.assertEqual(json['total'], 1)
+        assert_that(json['total']).is_equal_to(1)
         mail_content = json['items'][0]['Content']
         mail_body = mail_content['Body']
-        self.assertIn(post_payload['site'], mail_body)
-        self.assertIn(post_payload['path'], mail_body)
-        self.assertIn(post_payload['content'], mail_body)
+        assert_that(mail_body).contains(post_payload['site'])\
+            .contains(post_payload['path'])\
+            .contains(post_payload['content'])
         headers = mail_content['Headers']
-        self.assertEqual(headers['Content-Transfer-Encoding'][0], '8bit')
-        self.assertEqual(headers['Content-Type'][0], 'text/plain; charset=UTF-8')
-        self.assertEqual(headers['Mime-Version'][0], '1.0')
-        self.assertEqual(headers['From'][0], '{}<{}>'.format(post_payload['author'], post_payload['email']))
-        self.assertEqual(headers['Subject'][0], 'Comment by {} on {}'.format(post_payload['author'], post_payload['path']))
-        self.assertEqual(headers['To'][0], ADMIN_EMAIL)
+        assert_that(headers['Content-Transfer-Encoding'][0]).is_equal_to('8bit')
+        assert_that(headers['Content-Type'][0]).is_equal_to('text/plain; charset=UTF-8')
+        assert_that(headers['Mime-Version'][0]).is_equal_to('1.0')
+        assert_that(headers['From'][0]).is_equal_to('{}<{}>'.format(post_payload['author'], post_payload['email']))
+        assert_that(headers['Subject'][0]).is_equal_to('Comment by {} on {}'.format(post_payload['author'], post_payload['path']))
+        assert_that(headers['To'][0]).is_equal_to(ADMIN_EMAIL)
 
     def test_no_email_notification_after_invalid_POST(self):
         clear_mails()
@@ -286,7 +280,7 @@ class CommentSidecarTest(unittest.TestCase):
         post_comment(post_payload, assert_success=False)
 
         json = requests.get(MAILHOG_MESSAGES_URL).json()
-        self.assertEqual(json['total'], 0)
+        assert_that(json['total']).is_equal_to(0)
 
     def test_POST_spam_protection_empty_url_is_fine(self):
         post_payload = create_post_payload()
@@ -302,8 +296,9 @@ class CommentSidecarTest(unittest.TestCase):
         assert_that(response.json()['id']).is_equal_to(1)
 
         returned_json = get_comments().json()[0]
-        self.assertEqual(returned_json['author'], '&lt;strong&gt;Peter&lt;/strong&gt;')
-        self.assertEqual(returned_json['content'], '&lt;script type=&quot;text/javascript&quot;&gt;document.querySelector(&quot;aside#comment-sidecar h1&quot;).innerText = &quot;XSS&quot;;&lt;/script&gt;')
+        assert_that(returned_json)\
+            .contains_entry({'author': '&lt;strong&gt;Peter&lt;/strong&gt;'})\
+            .contains_entry({'content': '&lt;script type=&quot;text/javascript&quot;&gt;document.querySelector(&quot;aside#comment-sidecar h1&quot;).innerText = &quot;XSS&quot;;&lt;/script&gt;'})
 
     def test_subscription_mail_on_reply(self):
         clear_mails()
@@ -344,6 +339,18 @@ class CommentSidecarTest(unittest.TestCase):
 
         json = requests.get(MAILHOG_MESSAGES_URL).json()
         assert_no_mail_except_admin_mail(items=json['items'])
+
+def assert_cors_headers_exists(preflight_response, exptected_allowed_origin):
+    assert_that(preflight_response.headers)\
+        .contains_entry({'Access-Control-Allow-Origin': exptected_allowed_origin})\
+        .contains_entry({'Access-Control-Allow-Methods': 'GET, POST'})\
+        .contains_entry({'Access-Control-Allow-Headers': 'Content-Type'})
+
+def assert_cors_headers_doesnt_exists(preflight_response):
+    assert_that(preflight_response.headers)\
+        .does_not_contain_key('Access-Control-Allow-Origin')\
+        .does_not_contain_key('Access-Control-Allow-Methods')\
+        .does_not_contain_key('Access-Control-Allow-Headers')
 
 def assert_replies_contains(replies, assumed_element):
     replies_matching_assumed_element = [reply for reply in replies
