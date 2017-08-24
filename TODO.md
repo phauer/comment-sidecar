@@ -8,7 +8,6 @@
 - test import script with IT blog
 - pagination
 - rate limit (use dedicated table for this; POSTs are rare and can be a little slower; slow down attacker anyway). clean up job via web cron
-- admin mail: build link to directly jump to site and comments
 
 # prio 2
 

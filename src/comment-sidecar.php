@@ -187,8 +187,10 @@ function sendNotificationToAdminViaMail($comment) {
     $author = $comment['author'];
     $path = $comment["path"];
     $site = $comment["site"];
-    $message = "Site: $site";
+    $commentUrl = createCommentUrl($comment);
+    $message = "Site: $site\n";
     $message .= "Path: $path\n";
+    $message .= "URL: $commentUrl\n";
     $message .= "Message: " . $comment["content"] . "\n";
     $subject = "Comment by $author on $path";
     sendMail(E_MAIL_FOR_NOTIFICATIONS, $comment['author'], $comment['email'], $message, $subject);
@@ -215,9 +217,9 @@ function sendNotificationToParentAuthorViaMail($new_comment){
     }
 }
 
-function createCommentUrl($new_comment): string {
-    $url = $new_comment['site'] . $new_comment['path'] . "#comment-sidecar";
-    return str_replace("//", "/", $url);
+function createCommentUrl($comment): string {
+    $url = $comment['site'] . $comment['path'] . "#comment-sidecar";
+    return $url;
 }
 
 function sendMail($toMail, $fromName, $fromEmail, $message, $subject){
