@@ -4,9 +4,11 @@
     - beautify email
     - translate
     - add unsubscribe link to mail + test for it!
+- migration: add column for (disqus) avatars urls
 - test import script with IT blog
 - pagination
 - rate limit (use dedicated table for this; POSTs are rare and can be a little slower; slow down attacker anyway). clean up job via web cron
+- admin mail: build link to directly jump to site and comments
 
 # prio 2
 
@@ -26,6 +28,7 @@
         - alternative: use uuid instead of id&token. works, if this uuid is not delivered to client at all. so this uuid is hidden.
     - additional pw protection ("admin pw" or so). put in local webstorage for convenience?
         - enforce https?
+    - OR: no uuid, no admin pw; just http basic auth protection
     - moreover, only trash comments (set state to trashed/deleted). don't really delete it from db. reduces effects of an attack.
 - refactoring
     - use proper templating in comment-sidecar-js-delivery.php. maybe with php means, but prevent js tooling in IDE.

@@ -30,7 +30,7 @@ function main() {
 function unsubscribe() {
     if (!isset($_GET['commentId']) or empty($_GET['commentId'])
         or !isset($_GET['unsubscribeToken']) or empty($_GET['unsubscribeToken'])) {
-        throw new InvalidRequestException("Please submit both query parameters 'comment_id' and 'unsubscribe_token'");
+        throw new InvalidRequestException("Please submit both query parameters 'commentId' and 'unsubscribeToken'");
     }
     $handler = connect();
     $stmt = $handler->prepare("UPDATE comments SET subscribed = false WHERE id = :commentId and unsubscribe_token = :unsubscribeToken;");

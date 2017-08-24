@@ -187,23 +187,37 @@ function sendNotificationToAdminViaMail($comment) {
     $author = $comment['author'];
     $path = $comment["path"];
     $site = $comment["site"];
-    $message = "
-    Site: $site
-    Path: $path
-    Message: ${comment["content"]}
-    ";
+    $message = "Site: $site";
+    $message .= "Path: $path\n";
+    $message .= "Message: " . $comment["content"] . "\n";
     $subject = "Comment by $author on $path";
     sendMail(E_MAIL_FOR_NOTIFICATIONS, $comment['author'], $comment['email'], $message, $subject);
 }
 
 function sendNotificationToParentAuthorViaMail($new_comment){
-    $parents_email = find_parent_author_email($new_comment["replyTo"]);
-    if ($parents_email !== null) {
+    $parentComment = find_parent_author_email($new_comment["replyTo"]);
+    if ($parentComment !== null) {
+        //TODO test mail (content + both urls; esp correct id and token of parent - not new comment)
+        $parentAuthor = $parentComment['author'];
         $author = $new_comment['author'];
         $path = $new_comment["path"];
+        $unsubscribeUrl = BASE_URL . "unsubscribe.php?commentId=".$parentComment["id"]."&unsubscribeToken=".$parentComment["unsubscribe_token"];
+        $commentUrl = createCommentUrl($new_comment);
         $subject = "Reply to your comment by $author on $path";
-        sendMail($parents_email, $new_comment['author'], null, $new_comment["content"], $subject);
+        $content = "Hi $parentAuthor,\n\n";
+        $content .= "there is a reply to our comment:\n\n";
+        $content .= "Author: $author\n";
+        $content .= "URL: $commentUrl\n";
+        $content .= "Message:\n";
+        $content .= $new_comment["content"] . "\n\n";
+        $content .= "To unsubscribe mail notifications like this please click on the following link:\n".$unsubscribeUrl;
+        sendMail($parentComment['email'], $new_comment['author'], null, $content, $subject);
     }
+}
+
+function createCommentUrl($new_comment): string {
+    $url = $new_comment['site'] . $new_comment['path'] . "#comment-sidecar";
+    return str_replace("//", "/", $url);
 }
 
 function sendMail($toMail, $fromName, $fromEmail, $message, $subject){
@@ -218,16 +232,20 @@ function sendMail($toMail, $fromName, $fromEmail, $message, $subject){
 
 function find_parent_author_email($parentCommentId) {
     $handler = connect();
-    $stmt = $handler->prepare("SELECT email FROM comments WHERE id = :parent_comment_id AND subscribed = true");
+    $stmt = $handler->prepare("SELECT * FROM comments WHERE id = :parent_comment_id AND subscribed = true");
     $stmt->bindParam(':parent_comment_id', $parentCommentId);
     $stmt->execute();
     if ($stmt->rowCount() == 0){
         return null;
     }
     $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    $email = $results[0]['email'];
     $handler = null; //close connection
-    return $email;
+    return $results[0];
+}
+
+function endsWith($haystack, $needle) {
+    $length = strlen($needle);
+    return $length === 0 || (substr($haystack, -$length) === $needle);
 }
 
 class InvalidRequestException extends Exception {}
