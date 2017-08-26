@@ -199,7 +199,6 @@ function sendNotificationToAdminViaMail($comment) {
 function sendNotificationToParentAuthorViaMail($new_comment){
     $parentComment = find_parent_author_email($new_comment["replyTo"]);
     if ($parentComment !== null) {
-        //TODO test mail (content + both urls; esp correct id and token of parent - not new comment)
         $parentAuthor = $parentComment['author'];
         $author = $new_comment['author'];
         $path = $new_comment["path"];

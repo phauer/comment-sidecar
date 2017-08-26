@@ -1,9 +1,7 @@
 # prio 1
 
 - subscriptions
-    - beautify email
     - translate
-    - add unsubscribe link to mail + test for it!
 - migration: add column for (disqus) avatars urls
 - test import script with IT blog
 - pagination

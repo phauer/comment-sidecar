@@ -8,14 +8,15 @@ import hashlib
 import time
 from path import Path
 from assertpy import assert_that, fail
+from typing import List
 
 UNSUBSCRIBE_SUCCESS_MSG = "You have been unsubscribed successfully."
 UNSUBSCRIBE_ERROR_MSG = "Nothing has been updated. Either the comment doesn't exist or the unsubscribe token is invalid."
 ADMIN_EMAIL = 'test@localhost.de'
 DEFAULT_PATH = "/blogpost1/"
-DEFAULT_SITE = "petersworld.com"
+DEFAULT_SITE = "https://petersworld.com"
 INVALID_QUERY_PARAMS = "Please submit both query parameters 'site' and 'path'"
-INVALID_QUERY_PARAMS_UNSUBSCRIBE = "Please submit both query parameters 'comment_id' and 'unsubscribe_token'"
+INVALID_QUERY_PARAMS_UNSUBSCRIBE = "Please submit both query parameters 'commentId' and 'unsubscribeToken'"
 COMMENT_SIDECAR_URL = 'http://localhost/comment-sidecar.php'
 UNSUBSCRIBE_URL = 'http://localhost/unsubscribe.php'
 MAILHOG_BASE_URL = 'http://localhost:8025/api/'
@@ -307,26 +308,44 @@ class CommentSidecarTest(unittest.TestCase):
 
     def test_subscription_mail_on_reply(self):
         clear_mails()
-        root_payload = create_post_payload()
-        root_payload["email"] = "root@root.com"
-        response = post_comment(root_payload)
-        root_id = response.json()['id']
+        path = "/commented-post/"
+        site = "https://mysupersite.de"
+        parent = create_post_payload()
+        parent["email"] = "root@root.com"
+        parent["path"] = path
+        parent["site"] = site
+        response = post_comment(parent)
+        parent_id = response.json()['id']
 
-        reply_payload = create_post_payload()
-        reply_payload["replyTo"] = root_id
-        reply_payload["content"] = "Root, I disagree!"
-        reply_payload["email"] = "reply@reply.com!"
-        reply_payload["author"] = "Replyer"
-        post_comment(reply_payload)
+        reply = create_post_payload()
+        reply["replyTo"] = parent_id
+        reply["path"] = path
+        reply["site"] = site
+        reply["content"] = "Root, I disagree!"
+        reply["email"] = "reply@reply.com!"
+        reply["author"] = "Replyer"
+        post_comment(reply)
 
         json = requests.get(MAILHOG_MESSAGES_URL).json()
         assert_that(json['total']).is_greater_than(1)
 
-        assert_mail_exists(items=json['items'],
-                           expected_body=reply_payload["content"],
-                           expected_from=reply_payload["author"], # don't reveal replyer's email to notified parent author
-                           expected_subject="Reply to your comment by {} on /blogpost1/".format(reply_payload["author"]),
-                           expected_to=root_payload["email"])
+        mail = find_mail_by_sender(items=json['items'], email_from=reply["author"])
+        if not mail:
+            fail("No notification mail was found! recipient/parent: {}. sender/reply author: {}".format(parent["email"], reply["author"]))
+
+        assert_that(mail["from"]).contains(reply["author"])\
+            .does_not_contain(reply["email"])
+        assert_that(mail).has_subject("Reply to your comment by {} on {}".format(reply["author"], path))\
+            .has_to(parent["email"])
+
+        unsubscribe_token = retrieve_unsubscribe_token_from_db(parent_id)
+        unsubscribe_link = "{}?commentId={}&unsubscribeToken={}".format(UNSUBSCRIBE_URL, parent_id, unsubscribe_token)
+        link_to_site = "{}{}#comment-sidecar".format(site, path)
+        assert_that(mail["body"]).contains(reply["content"])\
+            .contains(unsubscribe_link)\
+            .contains(link_to_site)\
+            .contains(reply["author"])\
+            .does_not_contain(reply["email"])
 
     def test_subscription_no_mail_on_reply_if_no_parent_mail_defined(self):
         clear_mails()
@@ -544,18 +563,18 @@ def create_gravatar_url(email: str) -> str:
     md5.update(email.strip().lower().encode())
     return "https://www.gravatar.com/avatar/" + md5.hexdigest()
 
-def assert_mail_exists(items, expected_body, expected_from, expected_subject, expected_to):
+def find_mail_by_sender(items, email_from: str):
     for item in items:
         content = item['Content']
         headers = content['Headers']
-        if content['Body'] == expected_body \
-                and headers['From'][0] == expected_from \
-                and headers['Subject'][0] == expected_subject \
-                and headers['To'][0] == expected_to:
-            return
-    expected_mail = "({}; {}; {}; {})".format(expected_body, expected_from, expected_subject, expected_to)
-    actual_mails = ["({}; {}; {}; {})".format(item['Content']['Body'], item['Content']['Headers']['From'][0], item['Content']['Headers']['Subject'][0], item['Content']['Headers']['To'][0]) for item in items]
-    fail("No mail was sent to the author of a comment that was replied to.\nExpected mail:\n{}\nbut found only:\n{}".format(expected_mail, "\n".join(actual_mails)))
+        if headers['From'][0] == email_from:
+            return {
+                "from": headers['From'][0]
+                , "subject": headers['Subject'][0]
+                , "to": headers['To'][0]
+                , "body": content['Body']
+            }
+    return None
 
 def assert_no_mail_except_admin_mail(items):
     for item in items:
