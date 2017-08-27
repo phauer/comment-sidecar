@@ -52,7 +52,7 @@ Create the required table and the index. Therefore, execute the SQL statements i
 
 Copy whole content of the `src` directory (except `playground.html`) to your web space. You can put it wherever you like. Just remember the path. The following example assumes that all files are put in the root directory `/`.
 
-Open `comment-sidecar-config.php` and configure it:
+Open `config.php` and configure it:
 
 ```php
 <?php

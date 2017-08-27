@@ -1,5 +1,5 @@
 <?php
-include_once "comment-sidecar-config.php";
+include_once "config.php";
 
 function deliverJsWithTranslationsAndPath(){
     $translationFile = 'translations/'. LANGUAGE .'.php';
