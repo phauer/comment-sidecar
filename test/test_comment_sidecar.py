@@ -567,7 +567,7 @@ def find_mail_by_sender(items, email_from: str):
     for item in items:
         content = item['Content']
         headers = content['Headers']
-        if headers['From'][0] == email_from:
+        if email_from in headers['From'][0]:
             return {
                 "from": headers['From'][0]
                 , "subject": headers['Subject'][0]

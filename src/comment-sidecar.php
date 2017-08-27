@@ -212,7 +212,7 @@ function sendNotificationToParentAuthorViaMail($new_comment){
         $content .= $translations['message'].":\n";
         $content .= $new_comment["content"] . "\n\n";
         $content .= $translations['unsubscribeDescription']."\n".$unsubscribeUrl;
-        sendMail($parentComment['email'], $new_comment['author'], null, $content, $subject);
+        sendMail($parentComment['email'], $new_comment['author'], "dontReply@dontReply.com", $content, $subject);
     }
 }
 
