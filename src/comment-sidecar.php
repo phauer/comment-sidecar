@@ -1,5 +1,4 @@
 <?php
-include_once "config.php";
 include_once "common.php";
 
 /**
@@ -200,19 +199,19 @@ function sendNotificationToAdminViaMail($comment) {
 function sendNotificationToParentAuthorViaMail($new_comment){
     $parentComment = find_parent_author_email($new_comment["replyTo"]);
     if ($parentComment !== null) {
+        $translations = readTranslations();
         $parentAuthor = $parentComment['author'];
         $author = $new_comment['author'];
-        $path = $new_comment["path"];
         $unsubscribeUrl = BASE_URL . "unsubscribe.php?commentId=".$parentComment["id"]."&unsubscribeToken=".$parentComment["unsubscribe_token"];
         $commentUrl = createCommentUrl($new_comment);
-        $subject = "Reply to your comment by $author on $path";
+        $subject = str_replace("{}", $author, $translations['subject']);
         $content = "Hi $parentAuthor,\n\n";
-        $content .= "there is a reply to our comment:\n\n";
-        $content .= "Author: $author\n";
+        $content .= $translations['introduction']."\n\n";
+        $content .= $translations['author'].": $author\n";
         $content .= "URL: $commentUrl\n";
-        $content .= "Message:\n";
+        $content .= $translations['message'].":\n";
         $content .= $new_comment["content"] . "\n\n";
-        $content .= "To unsubscribe mail notifications like this please click on the following link:\n".$unsubscribeUrl;
+        $content .= $translations['unsubscribeDescription']."\n".$unsubscribeUrl;
         sendMail($parentComment['email'], $new_comment['author'], null, $content, $subject);
     }
 }

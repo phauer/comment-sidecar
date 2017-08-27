@@ -335,7 +335,7 @@ class CommentSidecarTest(unittest.TestCase):
 
         assert_that(mail["from"]).contains(reply["author"])\
             .does_not_contain(reply["email"])
-        assert_that(mail).has_subject("Reply to your comment by {} on {}".format(reply["author"], path))\
+        assert_that(mail).has_subject("Reply to your comment by {}".format(reply["author"]))\
             .has_to(parent["email"])
 
         unsubscribe_token = retrieve_unsubscribe_token_from_db(parent_id)

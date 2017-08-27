@@ -1,7 +1,5 @@
 # prio 1
 
-- subscriptions
-    - translate
 - migration: add column for (disqus) avatars urls
 - test import script with IT blog
 - pagination

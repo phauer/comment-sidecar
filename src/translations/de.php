@@ -23,4 +23,11 @@ $translations = array(
     'hours' => 'Stunden',
     'minutes' => 'Minuten',
     'seconds' => 'Sekunden',
+
+    # reply notification e-mail
+    'subject' => 'Antwort auf dein Kommentar von {}',
+    'introduction' => 'es gibt eine Antwort auf dein Kommentar.',
+    'author' => 'Autor',
+    'message' => 'Nachricht',
+    'unsubscribeDescription' => 'Um solche Benachrichtigungen nicht mehr zu erhalten, klicke auf folgenden Link:',
 );
