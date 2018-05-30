@@ -154,7 +154,8 @@
               </div>
               <div class="form-group">
                 <label for="cs-email" class="control-label">{{email}}:</label>
-                <input type="email" class="form-control cs-email" placeholder="{{emailHint}}">
+                <p class="cs-emailHint">{{emailHint}}</p>
+                <input type="email" class="form-control cs-email">
               </div>
               <div class="form-group cs-url-group">
                 <label for="cs-url" class="control-label">URL:</label>

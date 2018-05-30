@@ -61,3 +61,7 @@ aside#comment-sidecar form p.cs-form-message.fail {
 aside#comment-sidecar form .cs-url-group {
     display: none;
 }
+
+aside#comment-sidecar  form .cs-emailHint {
+    font-size: 80%;
+}
