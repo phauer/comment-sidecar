@@ -6,7 +6,7 @@ $translations = array(
     'email' => 'E-Mail',
     'comment' => 'Kommentar',
 
-    'emailHint' => 'Die E-Mail ist optional. Wird sie angegeben, wird mit ihr eine Gravatar-Bild neben dem Kommentar angezeigt (wenn vorhanden). Weiterhin werden Benachrichtigungen geschickt, wenn eine Antwort geschrieben wird. Die E-Mail wird niemals veröffentlicht.',
+    'emailHint' => 'Die E-Mail ist optional. Wird sie angegeben, wird mit ihr ein Gravatar-Bild neben dem Kommentar angezeigt (wenn vorhanden). Weiterhin werden Benachrichtigungen geschickt, wenn eine Antwort geschrieben wird. Die E-Mail wird niemals veröffentlicht.',
 
     'submit' => 'Abschicken',
     'reply' => 'Antworten',
