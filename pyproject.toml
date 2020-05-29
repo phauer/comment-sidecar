@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "comment-sidecar-tests"
+version = "0.1.0"
+description = ""
+authors = ["Philipp Hauer"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+PyMySQL = "^0.9.3"
+requests = "==2.18.1"
+"path.py" = "==10.3.1"
+python-dateutil = "==2.6.0"
+assertpy = "==0.10"
+
+# TODO
+# [tool.poetry.scripts]
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"

@@ -1,12 +1,16 @@
 # prio 1
 
+- dedicated domain
+- rewrite disqus export: use exportable XML as an input (instead of the API)
 - migration: add column for (disqus) avatars urls
 - test import script with IT blog
 - pagination
 - rate limit (use dedicated table for this; POSTs are rare and can be a little slower; slow down attacker anyway). clean up job via web cron
+- use pytest for tests
 
 # prio 2
 
+- rewrite tests in Kotlin?
 - network_mode = hosts (required for xdebug) makes sql queries extremely slow!
 - sql injection test
 - improve replyTo check: referring id has to be in the same site and path (separate post required for this)

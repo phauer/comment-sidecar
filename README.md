@@ -118,14 +118,18 @@ docker-compose up -d
 
 # set up python environment
 python3 --version # you need at least python 3.5 to run the tests
-sudo apt install python3-pip libmysqlclient-dev python-dev
+# install poetry. e.g. `yay install python-poetry`
+poetry install # install devs in a venv
+poetry env info 
+# configure your IDE with the displayed path
+# now, you can execute the tests directly from the IDE
 
 # execute all tests
-cd test
-make test
+poetry shell
+python -m unittest discover test
 
 # or only a single test:
-source .venv/bin/activate
+poetry shell
 ./test_comment_sidecar.py CommentSidecarTest.test_POST_comments_and_replies_and_GET_reply_chain 
 ```
 

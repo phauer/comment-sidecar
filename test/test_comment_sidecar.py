@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 
-import MySQLdb # requires: sudo apt install libmysqlclient-dev python-dev
+import pymysql
 import requests
+from pymysql.constants.CLIENT import MULTI_STATEMENTS
 from requests.models import Response
 import unittest
 import hashlib
 import time
 from path import Path
 from assertpy import assert_that, fail
-from typing import List
 
 UNSUBSCRIBE_SUCCESS_MSG = "You have been unsubscribed successfully."
 UNSUBSCRIBE_ERROR_MSG = "Nothing has been updated. Either the comment doesn't exist or the unsubscribe token is invalid."
@@ -21,15 +21,15 @@ COMMENT_SIDECAR_URL = 'http://localhost/comment-sidecar.php'
 UNSUBSCRIBE_URL = 'http://localhost/unsubscribe.php'
 MAILHOG_BASE_URL = 'http://localhost:8025/api/'
 MAILHOG_MESSAGES_URL = MAILHOG_BASE_URL + 'v2/messages'
-MYSQLDB_CONNECTION = {'host': '127.0.0.1', 'port': 3306, 'user': 'root', 'passwd': 'root', 'db': 'comment-sidecar'}
+MYSQLDB_CONNECTION = {'host': '127.0.0.1', 'port': 3306, 'user': 'root', 'passwd': 'root', 'db': 'comment-sidecar', 'client_flag': MULTI_STATEMENTS}
 
 class CommentSidecarTest(unittest.TestCase):
     def setUp(self):
         # first, run `docker-compose up`
-        self.db = MySQLdb.connect(**MYSQLDB_CONNECTION)
+        self.db = pymysql.connect(**MYSQLDB_CONNECTION)
         cur = self.db.cursor()
         with get_sql_file_path().open('r') as sql:
-            query = "\n".join(sql.readlines())
+            query = "".join(sql.readlines())
             cur.execute(query)
 
     def test_GET_missing_query_params(self):
@@ -429,7 +429,7 @@ class CommentSidecarTest(unittest.TestCase):
         assert_that(response.text).is_equal_to(UNSUBSCRIBE_ERROR_MSG)
 
 def assume_subscription_state_in_db(comment_id, expected_subscription_state):
-    db = MySQLdb.connect(**MYSQLDB_CONNECTION)
+    db = pymysql.connect(**MYSQLDB_CONNECTION)
     cur = db.cursor()
     cur.execute("SELECT subscribed FROM comments WHERE id = {}".format(comment_id))
     subscribed = cur.fetchone()[0]
@@ -439,7 +439,7 @@ def assume_subscription_state_in_db(comment_id, expected_subscription_state):
         assert_that(subscribed).described_as('subscribed state').is_equal_to(0)
 
 def retrieve_unsubscribe_token_from_db(comment_id):
-    db = MySQLdb.connect(**MYSQLDB_CONNECTION)
+    db = pymysql.connect(**MYSQLDB_CONNECTION)
     cur = db.cursor()
     cur.execute("SELECT unsubscribe_token FROM comments WHERE id = {}".format(comment_id))
     return cur.fetchone()[0]
