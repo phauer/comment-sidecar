@@ -3,36 +3,35 @@
 import requests
 import unittest
 
+from assertpy import assert_that
+
 COMMENT_SIDECAR_URL = 'http://localhost/comment-sidecar-js-delivery.php'
 
-class CommentSidecarJsDeliveryTest(unittest.TestCase):
-    def test_GET_js_with_translations_path_and_site(self):
-        response = requests.get(COMMENT_SIDECAR_URL)
-        self.assertEqual(response.status_code, 200)
-        js = response.text
+def test_GET_js_with_translations_path_and_site():
+    response = requests.get(COMMENT_SIDECAR_URL)
+    assert_that(response.status_code).is_equal_to(200)
+    js = response.text
 
-        self.assertNotIn("{{comments}}", js)
-        self.assertIn("Comments", js)
-        self.assertNotIn("{{name}}", js)
-        self.assertIn("Name", js)
-        self.assertNotIn("{{comment}}", js)
-        self.assertIn("Comment", js)
-        self.assertNotIn("{{emailHint}}", js)
-        self.assertIn("E-Mail will not be published. Gravatar is supported.", js)
-        self.assertNotIn("{{submit}}", js)
-        self.assertIn("Submit", js)
-        self.assertNotIn("{{noCommentsYet}}", js)
-        self.assertIn("No comments yet. Be the first!", js)
-        self.assertNotIn("{{successMessage}}", js)
-        self.assertIn("Successfully submitted comment.", js)
-        self.assertNotIn("{{failMessage}}", js)
-        self.assertIn("Couldn't submit your comment. Reason: ", js)
+    assert_that(js).does_not_contain("{{comments}}")
+    assert_that(js).contains("Comments")
+    assert_that(js).does_not_contain("{{name}}")
+    assert_that(js).contains("Name")
+    assert_that(js).does_not_contain("{{emailHint}}")
+    assert_that(js).contains("The E-Mail is optional.")
+    assert_that(js).does_not_contain("{{submit}}")
+    assert_that(js).contains("Submit")
+    assert_that(js).does_not_contain("{{noCommentsYet}}")
+    assert_that(js).contains("No comments yet. Be the first!")
+    assert_that(js).does_not_contain("{{successMessage}}")
+    assert_that(js).contains("Successfully submitted comment.")
+    assert_that(js).does_not_contain("{{failMessage}}")
+    assert_that(js).contains("Couldn't submit your comment. Reason: ")
 
-        self.assertIn("localhost", js)
-        self.assertNotIn("{{SITE}}", js)
+    assert_that(js).does_not_contain("{{SITE}}")
+    assert_that(js).contains("localhost")
 
-        self.assertIn("/comment-sidecar.php", js)
-        self.assertNotIn("{{BASE_PATH}}", js)
+    assert_that(js).does_not_contain("{{BASE_PATH}}")
+    assert_that(js).contains("/comment-sidecar.php")
 
 if __name__ == '__main__':
     unittest.main()

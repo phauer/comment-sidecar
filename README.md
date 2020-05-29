@@ -126,11 +126,11 @@ poetry env info
 
 # execute all tests
 poetry shell
-python -m unittest discover test
+pytest
 
 # or only a single test:
 poetry shell
-./test_comment_sidecar.py CommentSidecarTest.test_POST_comments_and_replies_and_GET_reply_chain 
+pytest test/test_comment_sidecar.py
 ```
 
 ## Frontend

@@ -6,7 +6,6 @@
 - test import script with IT blog
 - pagination
 - rate limit (use dedicated table for this; POSTs are rare and can be a little slower; slow down attacker anyway). clean up job via web cron
-- use pytest for tests
 
 # prio 2
 
