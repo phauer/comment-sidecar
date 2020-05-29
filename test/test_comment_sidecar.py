@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 
-import pymysql
 import pytest
 import requests
-from pymysql.constants.CLIENT import MULTI_STATEMENTS
+from mysql.connector import connect
 from requests.models import Response
 import unittest
 import hashlib
@@ -22,12 +21,12 @@ COMMENT_SIDECAR_URL = 'http://localhost/comment-sidecar.php'
 UNSUBSCRIBE_URL = 'http://localhost/unsubscribe.php'
 MAILHOG_BASE_URL = 'http://localhost:8025/api/'
 MAILHOG_MESSAGES_URL = MAILHOG_BASE_URL + 'v2/messages'
-MYSQLDB_CONNECTION = {'host': '127.0.0.1', 'port': 3306, 'user': 'root', 'passwd': 'root', 'db': 'comment-sidecar', 'client_flag': MULTI_STATEMENTS}
+MYSQLDB_CONNECTION = {'host': '127.0.0.1', 'port': 3306, 'user': 'root', 'passwd': 'root', 'db': 'comment-sidecar'}
 
 @pytest.fixture
 def db():
     # first, run `docker-compose up`
-    db = pymysql.connect(**MYSQLDB_CONNECTION)
+    db = connect(**MYSQLDB_CONNECTION)
     cur = db.cursor()
     with get_sql_file_path().open('r') as sql:
         query = "".join(sql.readlines())
@@ -413,7 +412,7 @@ def test_unsubscribe_wrong_id(db):
 # PRIVATE functions
 
 def assume_subscription_state_in_db(comment_id, expected_subscription_state):
-    db = pymysql.connect(**MYSQLDB_CONNECTION)
+    db = connect(**MYSQLDB_CONNECTION)
     cur = db.cursor()
     cur.execute("SELECT subscribed FROM comments WHERE id = {}".format(comment_id))
     subscribed = cur.fetchone()[0]
@@ -423,7 +422,7 @@ def assume_subscription_state_in_db(comment_id, expected_subscription_state):
         assert_that(subscribed).described_as('subscribed state').is_equal_to(0)
 
 def retrieve_unsubscribe_token_from_db(comment_id):
-    db = pymysql.connect(**MYSQLDB_CONNECTION)
+    db = connect(**MYSQLDB_CONNECTION)
     cur = db.cursor()
     cur.execute("SELECT unsubscribe_token FROM comments WHERE id = {}".format(comment_id))
     return cur.fetchone()[0]

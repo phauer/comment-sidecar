@@ -6,11 +6,11 @@ authors = ["Philipp Hauer"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
-PyMySQL = "^0.9.3"
 requests = "^2.23.0"
 "path.py" = "^12.4.0"
 python-dateutil = "^2.8.1"
 assertpy = "^1.0"
+mysql-connector-python = "^8.0.20"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.4.2"
