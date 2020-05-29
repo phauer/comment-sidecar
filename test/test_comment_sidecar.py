@@ -16,7 +16,7 @@ UNSUBSCRIBE_ERROR_MSG = "Nothing has been updated. Either the comment doesn't ex
 ADMIN_EMAIL = 'test@localhost.de'
 DEFAULT_PATH = "/blogpost1/"
 DEFAULT_SITE = "https://petersworld.com"
-INVALID_QUERY_PARAMS = "Please submit both query parameters 'site' and 'path'"
+ERROR_MESSAGE_MISSING_SITE_PATH = "Please submit both query parameters 'site' and 'path'"
 INVALID_QUERY_PARAMS_UNSUBSCRIBE = "Please submit both query parameters 'commentId' and 'unsubscribeToken'"
 COMMENT_SIDECAR_URL = 'http://localhost/comment-sidecar.php'
 UNSUBSCRIBE_URL = 'http://localhost/unsubscribe.php'
@@ -34,25 +34,11 @@ def db():
         cur.execute(query)
     return db
 
-def test_GET_missing_query_params(db):
-    response = requests.get(COMMENT_SIDECAR_URL)
+@pytest.mark.parametrize("queryParams", {'', 'site=&path=', 'site=domain.com', 'path=blogpost1'})
+def test_GET_invalid_query_params(db, queryParams):
+    response = requests.get(f'{COMMENT_SIDECAR_URL}?{queryParams}')
     assert_that(response.status_code).is_equal_to(400)
-    assert_that(response.json()["message"]).is_equal_to(INVALID_QUERY_PARAMS)
-
-def test_GET_empty_query_params(db):
-    response = get_comments(site='', path='', assert_success=False)
-    assert_that(response.status_code).is_equal_to(400)
-    assert_that(response.json()["message"]).is_equal_to(INVALID_QUERY_PARAMS)
-
-def test_GET_missing_path(db):
-    response = get_comments(site='domain.com', path='', assert_success=False)
-    assert_that(response.status_code).is_equal_to(400)
-    assert_that(response.json()["message"]).is_equal_to(INVALID_QUERY_PARAMS)
-
-def test_GET_missing_site(db):
-    response = get_comments(site='', path='blogpost1', assert_success=False)
-    assert_that(response.status_code).is_equal_to(400)
-    assert_that(response.json()["message"]).is_equal_to(INVALID_QUERY_PARAMS)
+    assert_that(response.json()["message"]).is_equal_to(ERROR_MESSAGE_MISSING_SITE_PATH)
 
 def test_GET_empty_array_if_no_comments(db):
     response = get_comments()
@@ -226,23 +212,17 @@ def test_POST_without_optional_email(db):
     response = post_comment(post_payload)
     assert_that(response.json()['id']).is_equal_to(1)
 
-def test_POST_missing_fields(db):
-    post_comment_with_missing_field_and_assert_error('author')
-    post_comment_with_missing_field_and_assert_error('content')
-    post_comment_with_missing_field_and_assert_error('site')
-    post_comment_with_missing_field_and_assert_error('path')
+@pytest.mark.parametrize("field", {'author', 'content', 'site', 'path'})
+def test_POST_missing_fields(db, field):
+    post_comment_with_missing_field_and_assert_error(field)
 
-def test_POST_empty_fields(db):
-    post_comment_with_empty_field_and_assert_error('author')
-    post_comment_with_empty_field_and_assert_error('content')
-    post_comment_with_empty_field_and_assert_error('site')
-    post_comment_with_empty_field_and_assert_error('path')
+@pytest.mark.parametrize("field", {'author', 'content', 'site', 'path'})
+def test_POST_empty_fields(db, field):
+    post_comment_with_empty_field_and_assert_error(field)
 
-def test_POST_blank_fields(db):
-    post_comment_with_blank_field_and_assert_error('author')
-    post_comment_with_blank_field_and_assert_error('content')
-    post_comment_with_blank_field_and_assert_error('site')
-    post_comment_with_blank_field_and_assert_error('path')
+@pytest.mark.parametrize("field", {'author', 'content', 'site', 'path'})
+def test_POST_blank_fields(db, field):
+    post_comment_with_blank_field_and_assert_error(field)
 
 def test_POST_to_long_fields(db):
     post_comment_to_long_field_and_assert_error('author', 40)
