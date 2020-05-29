@@ -6,14 +6,14 @@ authors = ["Philipp Hauer"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
+PyMySQL = "^0.9.3"
+requests = "^2.23.0"
+"path.py" = "^12.4.0"
+python-dateutil = "^2.8.1"
+assertpy = "^1.0"
 
 [tool.poetry.dev-dependencies]
-pytest = "^5.2"
-PyMySQL = "^0.9.3"
-requests = "==2.18.1"
-"path.py" = "==10.3.1"
-python-dateutil = "==2.6.0"
-assertpy = "==0.10"
+pytest = "^5.4.2"
 
 # TODO
 # [tool.poetry.scripts]
