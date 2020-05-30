@@ -12,7 +12,7 @@ function readTranslations(): array  {
     if (!file_exists($translationFile)) {
         http_response_code(500);
         echo "Can't find translation file $translationFile";
-        return;
+        return [];
     }
     include $translationFile;
     return $translations;

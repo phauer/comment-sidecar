@@ -1,4 +1,4 @@
-FROM php:7.0.19-apache
+FROM php:7.1.33-apache
 
 RUN apt-get update &&\
     apt-get install -y locales &&\
