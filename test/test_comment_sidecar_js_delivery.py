@@ -12,6 +12,8 @@ def test_GET_js_with_translations_path_and_site():
     assert_that(response.status_code).is_equal_to(200)
     js = response.text
 
+    assert_that(js).contains("<form>")
+
     assert_that(js).does_not_contain("{{comments}}")
     assert_that(js).contains("Comments")
     assert_that(js).does_not_contain("{{name}}")

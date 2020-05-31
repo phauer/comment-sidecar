@@ -1,6 +1,6 @@
 # prio 1
 
-- dedicated domain
+- add bulma form template
 - rewrite disqus export: use exportable XML as an input (instead of the API)
     - test import script with IT blog
 - migration: add column for (disqus) avatars urls

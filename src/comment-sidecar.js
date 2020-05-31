@@ -39,17 +39,13 @@
         if (!markInvalidFieldsAndIsValid(formDiv)) {
             return false;
         }
-        const author = formDiv.querySelector(".cs-author").value;
-        const email = formDiv.querySelector(".cs-email").value;
-        const content = formDiv.querySelector(".cs-content").value;
-        const url = formDiv.querySelector(".cs-url").value;
         const payload = {
-            author: author,
-            email: email,
-            content: content,
+            author: formDiv.querySelector(".cs-author").value,
+            email: formDiv.querySelector(".cs-email").value,
+            content: formDiv.querySelector(".cs-content").value,
             site: SITE,
             path: location.pathname,
-            url: url
+            url: formDiv.querySelector(".cs-url").value
         };
         if (parentId !== undefined) {
             payload.replyTo = parentId;
@@ -141,34 +137,12 @@
     }
     function expandReplyForm(postDiv, parentCommentId) {
         const replyForm = postDiv.querySelector(".cs-form");
-        replyForm.innerHTML = createFormHtml('{{submit}}');
+        replyForm.innerHTML = createFormHtml();
         replyForm.querySelector("button").onclick = () => submitComment(replyForm, parentCommentId);
     }
 
-    function createFormHtml(buttonLabel) {
-        return `
-            <form>
-              <div class="form-group">
-                <label for="cs-author" class="control-label">{{name}}*:</label>
-                <input type="text" class="form-control cs-author" required>
-              </div>
-              <div class="form-group">
-                <label for="cs-email" class="control-label">{{email}}:</label>
-                <p class="cs-emailHint">{{emailHint}}</p>
-                <input type="email" class="form-control cs-email">
-              </div>
-              <div class="form-group cs-url-group">
-                <label for="cs-url" class="control-label">URL:</label>
-                <input type="url" class="cs-url" name="url" placeholder="URL">
-              </div>
-              <div class="form-group">
-                <label for="cs-content" class="control-label">{{comment}}*:</label>
-                <textarea class="form-control cs-content" rows="7" required></textarea>
-              </div>
-              <button type="submit" class="btn btn-primary">${buttonLabel}</button>
-              <p class="cs-form-message"></p>
-            </form>
-        `;
+    function createFormHtml() {
+        return `{{formHtml}}`;
     }
 
     function createFormNode() {

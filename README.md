@@ -24,6 +24,7 @@ The comment-sidecar is already used in production for one of my sites. So it's r
 - Use one comment-sidecar installation for multiple sites.
 - Replying to a comment is supported.
 - Multi-language support (pull requests adding more languages are highly welcome).
+- Customizable Form HTML
 - Import existing Disqus comments.
 
 # Requirements
@@ -57,6 +58,7 @@ Open `config.php` and configure it:
 ```php
 <?php
 const LANGUAGE = "en"; # see translations folder for supported languages
+const FORM_TEMPLATE = "bootstrap-default"; # see for-templates folder to available form templates or define your own.
 const SITE = "domain.com"; # key for this site to identity comment of this site
 const E_MAIL_FOR_NOTIFICATIONS = "your.email@domain.com";
 const BASE_URL = "http://domainC.com/"; # base url of the comment-sidecar backend. can differ from the embedding site.

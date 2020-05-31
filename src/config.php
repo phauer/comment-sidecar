@@ -1,5 +1,6 @@
 <?php
 const LANGUAGE = "en"; # see translations folder for supported languages
+const FORM_TEMPLATE = "bootstrap-default"; # see for-templates folder to available form templates or define your own.
 const SITE = "http://localhost"; # key for this site to identity comment of this site. it will also be used to build urls.
 const E_MAIL_FOR_NOTIFICATIONS = "test@localhost.de";
 const BASE_URL = "http://localhost/"; # base url of the comment-sidecar backend. can differ from the embedding site.
