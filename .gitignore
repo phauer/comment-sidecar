@@ -3,4 +3,6 @@
 __pycache__
 node_modules/
 deploy-and-destribute.sh
+import/*.xml
+import/*.xml.gz
 .venv/

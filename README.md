@@ -95,10 +95,16 @@ A complete example for the frontend can be found in [`src/playground.html`](http
 
 # Import Existing Disqus Comments into Comment-Sidecar
 
-**Warning**: This feature is experimental and has not been tested properly. For the brave, do the following: Open `import/import_disqus_comments.py` and adjust the variables on the top of the file. You need an api key, which can be created [here](https://disqus.com/api/applications/register/). Then just call:
+First, Export your Disqus Comments as an XML file. Details can be found [here](https://help.disqus.com/en/articles/1717164-comments-export).
+
+Second, call
 
 ```bash
-make import
+poetry shell
+# print help and some descriptions
+python import/import_disqus_comments.py --help 
+# execute the command
+python import/import_disqus_comments.py --disqus_xml_file phauer.xml --site_url https://phauer.com --cs_site_key phauer.com --db_host db_host --db_port 3306 --db_user db_user --db_password db_password --db_name db_name
 ``` 
 
 # Development

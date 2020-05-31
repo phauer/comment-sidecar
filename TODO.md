@@ -2,12 +2,13 @@
 
 - rewrite disqus export: use exportable XML as an input (instead of the API)
     - test import script with IT blog
+    - write tests for the import script. maybe with my own disqus xml.
 - migration: add column for (disqus) avatars urls
 - pagination
 - rate limit
-    - use dedicated table for this; POSTs are rare and can be a little slower; slow down attacker anyway. clean up job via web cron.
-    - or use at least cookies 
+    - use dedicated table for this; POSTs are rare and can be a little slower; slow down attacker anyway. clean up job via web cron or on each POST.
 - update privacy policy
+- proper multi-site support. e.g. SITE variable set to a fixed value on the server-side.
 
 # prio 2
 

@@ -1,134 +1,107 @@
 #!/usr/bin/env python3
+import xml.etree.ElementTree as ET
+from dataclasses import dataclass
+from typing import List, Dict
 
-import requests
-import MySQLdb
+import click
 import dateutil.parser
-from typing import List, Dict, Any
+from mysql.connector import connect
 
-api_key = "" # get api key via: https://disqus.com/api/applications/register/
-forum = "blog-philipphauer" # your website's name in disqus
-blog_url_prefix = "https://blog.philipphauer.de" # used to find the correct thread/post URLs (filtering out synthetic threads). you must set the SITE variable in the php configuration to this value.
-db_host = '127.0.0.1'
-db_port = 3306
-db_user = 'root'
-db_passwd = 'root'
-db_name = 'comment-sidecar'
+disqus_namespace = {"":"http://disqus.com"}
+dsq_ns_url = '{http://disqus.com/disqus-internals}'
 
-def import_comments():
+@click.command()
+@click.option("--disqus_xml_file", help="The comments in Disqus' XML format")
+@click.option("--site_url", help="The base site URL where Disqus is currently embedded. e.g. 'https://phauer.com'. This is used to a) extract the path from the full URL and b) find the correct threads and to filter out the synthetic threads that also appear in the XML.")
+@click.option("--cs_site_key", help="The imported comments will be assigned to this site key by comment-sidecar")
+@click.option("--db_host", help="Database host")
+@click.option("--db_port", help="Database port")
+@click.option("--db_user", help="Database user")
+@click.option("--db_password", help="Database password")
+@click.option("--db_name", help="Database name")
+def import_comments(disqus_xml_file: str, site_url: str, cs_site_key: str, db_host: str, db_port: str, db_user: str, db_password: str, db_name: str):
+    xml_root = ET.parse(disqus_xml_file).getroot()
+
     print("Retrieving thread ids and urls from Disqus...")
-    thread_id_to_url_map = get_thread_id_to_url_map()
-    print("Got {} threads from Disqus.".format(len(thread_id_to_url_map)))
+    thread_id_to_url_map = get_thread_id_to_url_map(xml_root, site_url)
+    print(f'Got {len(thread_id_to_url_map)} threads from Disqus.')
 
     print("Retrieving comments from Disqus...")
-    comments = get_comments(thread_id_to_url_map)
-    print("Got {} comments from Disqus.".format(len(comments)))
+    comments = get_comments(xml_root)
+    print(f"Got {len(comments)} comments from Disqus.")
 
     print("Inserting Disqus comments into comment-sidecar db...")
-    insert_into_db(comments)
+    connection = connect(host=db_host, port=db_port, user=db_user, passwd=db_password, db=db_name, charset='utf8', use_unicode=True)
+    insert_into_db(connection, thread_id_to_url_map, comments, site_url, cs_site_key)
     print("Done.")
 
-class Comment:
-    def __init__(self, id: str, author, email, content, reply_to: str, site, path, creation_date_timestamp):
-        self.id = id
-        self.author = author
-        self.email = email
-        self.content = content
-        self.reply_to = reply_to
-        self.site = site
-        self.path = path
-        self.creation_date_timestamp = creation_date_timestamp
+@dataclass
+class DisqusComment:
+    id: str
+    thread_id: str
+    author: str
+    reply_to: str
+    creation_date: str
+    creation_date_timestamp: str
+    content: str
 
-    def __eq__(self, other):
-        if isinstance(other, self.__class__):
-            return self.__dict__ == other.__dict__
-        return False
-
-    def __str__(self):
-        return "{} {} {} {} {} {} {} {}".format(self.id, self.author, self.email, self.content[:30]+"...", self.reply_to, self.site, self.path, self.creation_date_timestamp)
-
-def insert_into_db(all_comments: List[Comment]):
-    # mind to map disqus's ids to our new ones
-    connection = MySQLdb.connect(host=db_host, port=db_port, user=db_user, passwd=db_passwd, db=db_name, charset='utf8', use_unicode=True)
+def insert_into_db(connection, thread_id_to_url_map: Dict[str, str], comments: List[DisqusComment], site_url: str, cs_site_key: str):
     cur = connection.cursor()
-
-    # first, insert all root comments and remember their new ids
-    root_comments = [comment for comment in all_comments if comment.reply_to is None]
-    disqus_id_to_sidecar_id = insert_comments_and_get_created_ids(cur, root_comments)
-
-    # second insert comments, that have a reply_to that already exists in disqus_id_to_sidecar_id (= 2th level)... and again...
-    while True:
-        next_level_reply_comments = [comment for comment in all_comments if comment.reply_to in disqus_id_to_sidecar_id]
-        if not next_level_reply_comments: # is empty
-            break
-        disqus_id_to_sidecar_id = insert_comments_and_get_created_ids(cur, next_level_reply_comments, parents_disqus_id_to_sidecar_id=disqus_id_to_sidecar_id)
+    disqus_id_to_sidecar_id: Dict[str, str] = {}
+    # sort the comments by the created_date. so we don't run into violation of the reply_to ref integrity.
+    sorted_comments = sorted(comments, key=lambda comment: comment.creation_date_timestamp)
+    for disqus_comment in sorted_comments:
+        print(f'Inserting {disqus_comment}')
+        try:
+            reply_to_sidecar_id = None if disqus_comment.reply_to is None else disqus_id_to_sidecar_id[disqus_comment.reply_to]
+            url = thread_id_to_url_map[disqus_comment.thread_id]
+            path = url.replace(site_url, "")
+            cur.execute(
+                "INSERT INTO comments (author, content, reply_to, site, path, creation_date) VALUES (%s,%s,%s,%s,%s,from_unixtime(%s));",
+                (disqus_comment.author, disqus_comment.content, reply_to_sidecar_id, cs_site_key, path,
+                 disqus_comment.creation_date_timestamp)
+            )
+            created_id = cur.lastrowid
+            disqus_id_to_sidecar_id[disqus_comment.id] = created_id
+        except KeyError:
+            # a key error can occur in disqus_id_to_sidecar_id[disqus_comment.reply_to] because:
+            # - we try to map a reply to a deleted comment (but deleted comment already got filtered out)
+            # - or it can happen when a filtered thread has somehow comments
+            print('\tSkipped!')
+            pass
 
     connection.commit()
 
-def insert_comments_and_get_created_ids(cur, comments: List[Comment], parents_disqus_id_to_sidecar_id=None):
-    print("Inserting {} comments...".format(len(comments)))
-    current_disqus_id_to_sidecar_id = dict()
-    for disqus_comment in comments:
-        sidecar_id = None if disqus_comment.reply_to is None else parents_disqus_id_to_sidecar_id[disqus_comment.reply_to]
-        cur.execute(
-            "INSERT INTO comments (author, content, reply_to, site, path, creation_date) VALUES (%s,%s,%s,%s,%s,from_unixtime(%s));",
-            (disqus_comment.author, disqus_comment.content, sidecar_id, disqus_comment.site, disqus_comment.path,
-             disqus_comment.creation_date_timestamp))
-        created_id = cur.lastrowid
-        current_disqus_id_to_sidecar_id[disqus_comment.id] = created_id
-    return current_disqus_id_to_sidecar_id
-
-def get_all_results(url) -> List[Dict[str, Any]]:
-    """pages through the responses to fetch all responses"""
-    if not api_key:
-        raise Exception("api key is not set!")
-    has_next = True
-    next_cursor = None
-    result = []
-    while has_next:
-        cursor_param = "" if next_cursor is None else "&cursor=" + next_cursor
-        json = requests.get(url="{}&api_key={}{}".format(url, api_key, cursor_param)).json()
-        has_next = json["cursor"]["hasNext"]
-        next_cursor = json["cursor"]["next"]
-        result.extend(json["response"])
-    return result
-
-def get_thread_id_to_url_map() -> Dict[str, str]:
-    threads = get_all_results(url="https://disqus.com/api/3.0/forums/listThreads.json?forum={}&limit=100".format(forum))
+def get_thread_id_to_url_map(xml_root: ET.Element, site_url: str) -> Dict[str, str]:
     thread_id_to_url_map = {}
+    threads = xml_root.findall('thread', disqus_namespace)
     for thread in threads:
-        url = thread["link"]
-        if url.startswith(blog_url_prefix):
-            thread_id_to_url_map[thread["id"]] = url
+        url = thread.findtext(path="link", namespaces=disqus_namespace)
+        if url.startswith(site_url) and '?' not in url: # remove strange redundant threads
+            thread_id = thread.get(f'{dsq_ns_url}id')
+            thread_id_to_url_map[thread_id] = url
     return thread_id_to_url_map
 
-def get_comments(thread_id_to_url_map: Dict[str, str]) -> List[Comment]:
-    disqus_comments = get_all_results(url="https://disqus.com/api/3.0/posts/list.json?forum={}&limit=100".format(forum))
-    return [map_to_comment(x, thread_id_to_url_map) for x in disqus_comments]
-
-def map_to_comment(disqus_comment, thread_id_to_url_map: Dict[str, str]) -> Comment:
-    url = thread_id_to_url_map[disqus_comment["thread"]]
-    path = url.replace(blog_url_prefix, "")
-    utc_created_at = get_second_timestamp(disqus_comment["createdAt"])
-    parent = disqus_comment["parent"]
-    return Comment(
-        id=disqus_comment["id"],
-        author=disqus_comment["author"]["name"],
-        email=None,
-        content=disqus_comment["raw_message"],
-        reply_to=None if parent is None else str(parent),
-        site=blog_url_prefix,
-        path=path,
-        creation_date_timestamp=utc_created_at
-    )
+def get_comments(xml_root: ET.Element) -> List[DisqusComment]:
+    return [DisqusComment(
+        id=post_xml.get(f'{dsq_ns_url}id'),
+        thread_id=post_xml.find('thread', disqus_namespace).get(f'{dsq_ns_url}id'),
+        author=post_xml.findtext(path="author/name", namespaces=disqus_namespace),
+        content=post_xml.findtext(path="message", namespaces=disqus_namespace),
+        reply_to=None if post_xml.find('parent', disqus_namespace) is None else post_xml.find('parent', disqus_namespace).get(f'{dsq_ns_url}id'),
+        creation_date=post_xml.findtext(path="createdAt", namespaces=disqus_namespace),
+        creation_date_timestamp=get_second_timestamp(post_xml.findtext(path="createdAt", namespaces=disqus_namespace))
+    ) for post_xml in xml_root.findall('post', disqus_namespace)
+        if post_xml.findtext(path="isDeleted", namespaces=disqus_namespace) == "false"
+        and post_xml.findtext(path="isSpam", namespaces=disqus_namespace) == "false"
+    ]
 
 def get_second_timestamp(created_at: str) -> str:
-    # timestamps in the api are UTC.
+    # timestamps in the xml are in UTC.
     utc_created_at = dateutil.parser.parse(created_at+"Z")
     timestamp = utc_created_at.timestamp() # 1499256719.0
     return str(timestamp).replace(".0", "")
 
-import_comments()
 
-# ideas
-# no email in disqus api => no avatar. insert author.avatar.small.permalink instead? new column "avatar_url" required...
-
+if __name__ == '__main__':
+    import_comments()
