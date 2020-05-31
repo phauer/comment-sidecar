@@ -1,6 +1,6 @@
 <form>
     <div class="field">
-        <label class="label">{{name}}*</label>
+        <label class="label">{{name}}*:</label>
         <div class="control">
             <input class="input cs-author" type="text" placeholder="Your name" required/>
         </div>
@@ -24,8 +24,10 @@
             <textarea class="textarea cs-content" placeholder="You comment"></textarea>
         </div>
     </div>
-    <div class="control">
-        <button class="button is-link">{{submit}}</button>
+    <div class="field is-grouped is-grouped-right">
+        <div class="control">
+            <button class="button is-link">{{submit}}</button>
+        </div>
     </div>
     <p class="cs-form-message"></p>
 </form>
