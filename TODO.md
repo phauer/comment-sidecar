@@ -1,11 +1,12 @@
 # prio 1
 
-- add bulma form template
 - rewrite disqus export: use exportable XML as an input (instead of the API)
     - test import script with IT blog
 - migration: add column for (disqus) avatars urls
 - pagination
-- rate limit (use dedicated table for this; POSTs are rare and can be a little slower; slow down attacker anyway). clean up job via web cron
+- rate limit
+    - use dedicated table for this; POSTs are rare and can be a little slower; slow down attacker anyway. clean up job via web cron.
+    - or use at least cookies 
 
 # prio 2
 

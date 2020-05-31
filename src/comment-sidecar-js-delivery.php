@@ -12,7 +12,9 @@ function deliverJsWithTranslationsAndPath(){
     $page = file_get_contents($jsTemplate, FILE_USE_INCLUDE_PATH);
 
     // poor man's templating (but at least I prevent nice tooling in the js and html file)
-    $page = str_replace("{{formHtml}}", readFormTemplate(), $page);
+    $page = str_replace("{{FORM_HTML}}", readFormTemplate(), $page);
+    $page = str_replace("{{BUTTON_CSS_CLASSES_ADD_COMMENT}}", BUTTON_CSS_CLASSES_ADD_COMMENT, $page);
+    $page = str_replace("{{BUTTON_CSS_CLASSES_REPLY}}", BUTTON_CSS_CLASSES_REPLY, $page);
     foreach (readTranslations() as $key => $translation) {
         $page = str_replace("{{".$key."}}",$translation,$page);
     }

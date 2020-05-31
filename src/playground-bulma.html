@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>comment-sidecar playground bulma</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.2/css/bulma.min.css">
+    <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
+    <!-- optionally, embed this css file or add its content (adjusted) to your own css. -->
+    <link rel="stylesheet" href="/comment-sidecar-basic.css"/>
+</head>
+<body>
+
+<section class="section">
+    <div class="container content">
+        <h1 class="title">Example post</h1>
+
+        <p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.</p>
+
+        <p><a href="http://localhost:8025/">See the send E-Mails here</a></p>
+
+        <h1>Comments</h1>
+
+        <!-- embed this: -->
+        <aside id="comment-sidecar"></aside>
+        <script type="text/javascript">
+            (function() {
+                const scriptNode = document.createElement('script');
+                scriptNode.type = 'text/javascript';
+                scriptNode.async = true;
+                scriptNode.src = 'http://localhost/comment-sidecar-js-delivery.php';
+                (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(scriptNode);
+            })();
+        </script>
+        <!-- until here. -->
+
+    </div>
+</section>
+
+<script id="__bs_script__">//<![CDATA[
+document.write("<script async src='http://HOST:3000/browser-sync/browser-sync-client.js?v=2.18.13'><\/script>".replace("HOST", location.hostname));
+//]]></script>
+</body>
+</html>

@@ -4,8 +4,8 @@
 
     function handleResponse(response, formDiv) {
         if (response.status === 201) {
-            const inputs = formDiv.querySelectorAll("div.cs-form .form-control");
-            inputs.forEach(input => input.value = "");
+            formDiv.querySelectorAll("input").forEach(input => input.value = "");
+            formDiv.querySelectorAll("textarea").forEach(input => input.value = "");
 
             const element = formDiv.querySelector(".cs-form-message");
             element.innerText = "{{successMessage}}";
@@ -109,7 +109,7 @@
                     <span class="cs-date">${formatDate(comment.creationTimestamp)}</span>
                 </header>
                 <div class="cs-content">${contentWithBrTags}</div>
-                <button class="cs-expand-button btn btn-link btn-sm">{{reply}}</button>
+                <button class="cs-expand-button {{BUTTON_CSS_CLASSES_REPLY}} btn-sm">{{reply}}</button>
                 <div class="cs-form"></div>
                 <div class="cs-replies"></div>
             </div>
@@ -142,14 +142,14 @@
     }
 
     function createFormHtml() {
-        return `{{formHtml}}`;
+        return `{{FORM_HTML}}`;
     }
 
     function createFormNode() {
         const mainFormDiv = document.createElement('div');
         mainFormDiv.setAttribute("class", "cs-form-root");
         mainFormDiv.innerHTML = `
-            <button class="cs-expand-button btn btn-link">{{writeComment}}</button>
+            <button class="cs-expand-button {{BUTTON_CSS_CLASSES_ADD_COMMENT}}">{{writeComment}}</button>
             <div class="cs-form"></div>
         `;
         mainFormDiv.querySelector("button").onclick = (event) => expandForm(event.target, mainFormDiv);
@@ -163,7 +163,6 @@
     }
 
     const commentAreaNode = document.querySelector("#comment-sidecar");
-    commentAreaNode.innerHTML = `<p class="cs-title">{{comments}}</p>`;
 
     commentAreaNode.appendChild(createFormNode());
 

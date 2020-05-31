@@ -1,7 +1,5 @@
 <?php
 $translations = array(
-    'comments' => 'Comments',
-
     'name' => 'Name',
     'email' => 'E-Mail',
     'comment' => 'Comment',
