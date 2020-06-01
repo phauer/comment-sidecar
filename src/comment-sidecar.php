@@ -12,6 +12,7 @@ function main() {
     $method = $_SERVER['REQUEST_METHOD'];
     header('Content-Type: application/json');
     setCORSHeader();
+    $rateLimiter = new RateLimiter();
     try {
         switch ($method) {
             case 'GET': {
@@ -20,7 +21,11 @@ function main() {
             }
             case 'POST': {
                 $comment = json_decode(file_get_contents('php://input'),true);
+                checkForSpam($comment);
+                validatePostedComment($comment);
+                $rateLimiter->checkIpAgainstRateLimit();
                 $createdId = createComment($comment);
+                $rateLimiter->insert_ip_entry();
                 sendNotificationToAdminViaMail($comment);
                 if (isset($comment["replyTo"])){
                     sendNotificationToParentAuthorViaMail($comment);
@@ -64,14 +69,12 @@ function getCommentsAsJson() {
         or !isset($_GET['path']) or empty($_GET['path'])) {
         throw new InvalidRequestException("Please submit both query parameters 'site' and 'path'");
     }
-    $handler = connect();
-    $stmt = $handler->prepare("SELECT id, author, content, email, reply_to, site, path, unix_timestamp(creation_date) as creationTimestamp FROM comments WHERE site = :site and path = :path ORDER BY creation_date desc;");
+    $stmt = Database::getConnection()->prepare("SELECT id, author, content, email, reply_to, site, path, unix_timestamp(creation_date) as creationTimestamp FROM comments WHERE site = :site and path = :path ORDER BY creation_date desc;");
     $stmt->bindParam(":site", $_GET['site']);
     $stmt->bindParam(":path", $_GET['path']);
     $stmt->execute();
     $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
     $json = mapToJson($results);
-    $handler = null; //close connection
     return $json;
 }
 
@@ -117,10 +120,7 @@ function createReplyIdToCommentsMap($results) {
 
 function createComment($comment) {
     try {
-        checkForSpam($comment);
-        validatePostedComment($comment);
-        $handler = connect();
-        $stmt = $handler->prepare("INSERT INTO comments (author, email, content, reply_to, site, path, subscribed, unsubscribe_token, creation_date) VALUES (:author, :email, :content, :reply_to, :site, :path, :subscribed, :unsubscribe_token, now());");
+        $stmt = Database::getConnection()->prepare("INSERT INTO comments (author, email, content, reply_to, site, path, subscribed, unsubscribe_token) VALUES (:author, :email, :content, :reply_to, :site, :path, :subscribed, :unsubscribe_token);");
         $author = htmlspecialchars($comment["author"]);
         $content = htmlspecialchars($comment["content"]);
         $subscribed = (isset($comment["email"]) and !empty(trim($comment['email'])));
@@ -133,8 +133,7 @@ function createComment($comment) {
         $stmt->bindValue(':subscribed', $subscribed, PDO::PARAM_BOOL);
         $stmt->bindValue(':unsubscribe_token', generateRandomString(10));
         $stmt->execute();
-        $createdId = $handler->lastInsertId();
-        $handler = null; //close connection
+        $createdId = Database::getConnection()->lastInsertId();
         return $createdId;
     } catch (PDOException $ex){
         if (isInvalidReplyToId($ex)) {
@@ -226,21 +225,65 @@ function sendMail($toMail, $fromName, $fromEmail, $message, $subject){
 }
 
 function find_parent_author_email($parentCommentId) {
-    $handler = connect();
-    $stmt = $handler->prepare("SELECT * FROM comments WHERE id = :parent_comment_id AND subscribed = true");
+    $stmt = Database::getConnection()->prepare("SELECT * FROM comments WHERE id = :parent_comment_id AND subscribed = true");
     $stmt->bindParam(':parent_comment_id', $parentCommentId);
     $stmt->execute();
     if ($stmt->rowCount() == 0){
         return null;
     }
     $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    $handler = null; //close connection
     return $results[0];
 }
 
-function endsWith($haystack, $needle) {
-    $length = strlen($needle);
-    return $length === 0 || (substr($haystack, -$length) === $needle);
+class RateLimiter {
+    function checkIpAgainstRateLimit() {
+        $ip = $_SERVER['REMOTE_ADDR'];
+        $this->clean_up_outdated_ips();
+        if ($this->ip_entry_exists($ip)) {
+            throw new InvalidRequestException("You have exceeded the maximal number of comments within a time frame.");
+        }
+    }
+
+    private function ip_entry_exists($ip) {
+        $stmt = Database::getConnection()->prepare("SELECT count(ip) as ip_count FROM ip_addresses WHERE ip = :ip;");
+        $stmt->bindParam(":ip", $ip);
+        $stmt->execute();
+        $count =  $stmt->fetchColumn();
+        return $count == 1;
+    }
+
+    private function clean_up_outdated_ips() {
+        $stmt = Database::getConnection()->prepare("DELETE FROM ip_addresses WHERE creation_date < ADDDATE(NOW(6), INTERVAL -:rateLimitThreshold SECOND);");
+        $rateLimitThreshold = RATE_LIMIT_THRESHOLD_SECONDS;
+        $stmt->bindParam(":rateLimitThreshold", $rateLimitThreshold);
+        $stmt->execute();
+    }
+
+    public function insert_ip_entry() {
+        $stmt = Database::getConnection()->prepare("INSERT INTO ip_addresses (ip) VALUES (:ip);");
+        $stmt->bindParam(':ip', $_SERVER['REMOTE_ADDR']);
+        $stmt->execute();
+    }
+}
+
+class Database {
+    private static $db;
+    private $connection;
+
+    private function __construct() {
+        $this->connection = connect();
+    }
+
+    function __destruct() {
+        $this->connection = null;
+    }
+
+    public static function getConnection() {
+        if (self::$db == null) {
+            self::$db = new Database();
+        }
+        return self::$db->connection;
+    }
 }
 
 main();

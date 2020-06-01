@@ -23,7 +23,7 @@ MAILHOG_BASE_URL = 'http://localhost:8025/api/'
 MAILHOG_MESSAGES_URL = MAILHOG_BASE_URL + 'v2/messages'
 MYSQLDB_CONNECTION = {'host': '127.0.0.1', 'port': 3306, 'user': 'root', 'passwd': 'root', 'db': 'comment-sidecar'}
 
-@pytest.fixture
+@pytest.fixture(scope="module", autouse=True)
 def db():
     # first, run `docker-compose up`
     db = connect(**MYSQLDB_CONNECTION)
@@ -33,17 +33,24 @@ def db():
         cur.execute(query)
     return db
 
+@pytest.fixture(scope="function", autouse=True)
+def before_each():
+    db = connect(**MYSQLDB_CONNECTION)
+    cur = db.cursor()
+    cur.execute("TRUNCATE TABLE comments;")
+    cur.execute("TRUNCATE TABLE ip_addresses;")
+
 @pytest.mark.parametrize("queryParams", {'', 'site=&path=', 'site=domain.com', 'path=blogpost1'})
-def test_GET_invalid_query_params(db, queryParams):
+def test_GET_invalid_query_params(queryParams):
     response = requests.get(f'{COMMENT_SIDECAR_URL}?{queryParams}')
     assert_that(response.status_code).is_equal_to(400)
     assert_that(response.json()["message"]).is_equal_to(ERROR_MESSAGE_MISSING_SITE_PATH)
 
-def test_GET_empty_array_if_no_comments(db):
+def test_GET_empty_array_if_no_comments():
     response = get_comments()
     assert_that(response.text).is_equal_to('[]')
 
-def test_POST_and_GET_comment(db):
+def test_POST_and_GET_comment():
     post_payload = create_post_payload()
     timestamp_before = int(time.time())
     response = post_comment(post_payload)
@@ -63,7 +70,7 @@ def test_POST_and_GET_comment(db):
     assert_timestamp_between(returned_comment["creationTimestamp"], start=timestamp_before, end=timestamp_after)
     assert_absent_fields(returned_comment)
 
-def test_POST_comments_and_replies_and_GET_reply_chain(db):
+def test_POST_comments_and_replies_and_GET_reply_chain():
     # for adhoc debugging: `http "localhost/comment-sidecar.php?site=peterworld%2Ecom&path=%2Fblogpost1%2F&XDEBUG_SESSION_START=IDEA_DEBUG"`
     # root1
     # - reply 1 to root
@@ -116,14 +123,14 @@ def test_POST_comments_and_replies_and_GET_reply_chain(db):
         'content': 'reply 3 to reply 2', 'id': '4', 'author': 'Peter',
     })
 
-def test_POST_invalid_replyTo_ID(db):
+def test_POST_invalid_replyTo_ID():
     post_payload = create_post_payload()
     post_payload['replyTo'] = '989089'
     response = post_comment(post_payload, assert_success=False)
     assert_that(response.status_code).described_as("Invalid replyTo ID should be rejected.").is_equal_to(400)
     assert_that(response.json()['message']).is_equal_to("The replyTo value '989089' refers to a not existing id.")
 
-def test_POST_and_GET_comment_with_german_umlauts(db):
+def test_POST_and_GET_comment_with_german_umlauts():
     post_payload = create_post_payload()
     post_payload['content'] = "äöüß - Deutsche Umlaute? Kein Problem für utf-8! ÖÄÜ"
     post_payload['author'] = "öäüßÖÄÜ"
@@ -136,7 +143,7 @@ def test_POST_and_GET_comment_with_german_umlauts(db):
         .contains_entry({'author': post_payload["author"]})\
         .contains_entry({'content': post_payload["content"]})
 
-def test_OPTIONS_CORS_headers_valid_origin(db):
+def test_OPTIONS_CORS_headers_valid_origin():
     # before sending a POST, the browser will send an OPTION request as a preflight to see the CORS headers.
     # the backend will only return the required CORS headers, if the Origin is set to a allowed domain.
     post_payload = create_post_payload()
@@ -148,7 +155,7 @@ def test_OPTIONS_CORS_headers_valid_origin(db):
         .described_as("No comment should have been created after an OPTIONS request")\
         .is_empty()
 
-def test_OPTIONS_CORS_headers_invalid_origin(db):
+def test_OPTIONS_CORS_headers_invalid_origin():
     post_payload = create_post_payload()
     valid_origin = 'http://invalid.com'
     preflight_response = requests.options(url=COMMENT_SIDECAR_URL, json=post_payload, headers={'Origin': valid_origin})
@@ -158,19 +165,19 @@ def test_OPTIONS_CORS_headers_invalid_origin(db):
         .described_as("No comment should have been created after an OPTIONS request") \
         .is_empty()
 
-def test_GET_CORS_headers_valid_origin(db):
+def test_GET_CORS_headers_valid_origin():
     # for GETs, the browser will request immediately (without preflight), but will reject the response, if the CORS are not set.
     # the backend will only return the required CORS headers, if the Origin is set to a allowed domain.
     valid_origin = 'http://testdomain.com'
     response = requests.get("{}?site={}&path={}".format(COMMENT_SIDECAR_URL, DEFAULT_SITE, DEFAULT_PATH), headers={'Origin': valid_origin})
     assert_cors_headers_exists(response, valid_origin)
 
-def test_GET_CORS_headers_invalid_origin(db):
+def test_GET_CORS_headers_invalid_origin():
     valid_origin = 'http://invalid.com'
     response = requests.get("{}?site={}&path={}".format(COMMENT_SIDECAR_URL, DEFAULT_SITE, DEFAULT_PATH), headers={'Origin': valid_origin})
     assert_cors_headers_doesnt_exists(response)
 
-def test_GET_different_paths(db):
+def test_GET_different_paths():
     path_with_two_comments = "/post1/"
     path_with_one_comment = "/post2/"
 
@@ -187,7 +194,7 @@ def test_GET_different_paths(db):
     response = get_comments(path=path_with_one_comment)
     assert_that(response.json()).is_length(1)
 
-def test_GET_different_sites(db):
+def test_GET_different_sites():
     site_with_two_comments = "mydomain2.com"
     site_with_one_comment = "mydomain1.com"
 
@@ -204,31 +211,31 @@ def test_GET_different_sites(db):
     response = get_comments(site=site_with_one_comment)
     assert_that(response.json()).is_length(1)
 
-def test_POST_without_optional_email(db):
+def test_POST_without_optional_email():
     post_payload = create_post_payload()
     post_payload.pop('email')
     response = post_comment(post_payload)
     assert_that(response.json()['id']).is_equal_to(1)
 
 @pytest.mark.parametrize("field", {'author', 'content', 'site', 'path'})
-def test_POST_missing_fields(db, field):
+def test_POST_missing_fields(field):
     post_comment_with_missing_field_and_assert_error(field)
 
 @pytest.mark.parametrize("field", {'author', 'content', 'site', 'path'})
-def test_POST_empty_fields(db, field):
+def test_POST_empty_fields(field):
     post_comment_with_empty_field_and_assert_error(field)
 
 @pytest.mark.parametrize("field", {'author', 'content', 'site', 'path'})
-def test_POST_blank_fields(db, field):
+def test_POST_blank_fields(field):
     post_comment_with_blank_field_and_assert_error(field)
 
-def test_POST_to_long_fields(db):
+def test_POST_to_long_fields():
     post_comment_to_long_field_and_assert_error('author', 40)
     post_comment_to_long_field_and_assert_error('email', 40)
     post_comment_to_long_field_and_assert_error('site', 40)
     post_comment_to_long_field_and_assert_error('path', 170)
 
-def test_POST_spam_protection_set_url_is_spam(db):
+def test_POST_spam_protection_set_url_is_spam():
     post_payload = create_post_payload()
     post_payload['url'] = 'http://only.spambots.will/populate/this/field/'
     response = post_comment(post_payload, assert_success=False)
@@ -237,7 +244,7 @@ def test_POST_spam_protection_set_url_is_spam(db):
         .is_equal_to(400)
     assert_that(response.json()['message']).is_empty()
 
-def test_email_notification_after_successful_POST(db):
+def test_email_notification_after_successful_POST():
     clear_mails()
 
     post_payload = create_post_payload()
@@ -258,7 +265,7 @@ def test_email_notification_after_successful_POST(db):
     assert_that(headers['Subject'][0]).is_equal_to('Comment by {} on {}'.format(post_payload['author'], post_payload['path']))
     assert_that(headers['To'][0]).is_equal_to(ADMIN_EMAIL)
 
-def test_no_email_notification_after_invalid_POST(db):
+def test_no_email_notification_after_invalid_POST():
     clear_mails()
 
     post_payload = create_post_payload()
@@ -268,13 +275,13 @@ def test_no_email_notification_after_invalid_POST(db):
     json = requests.get(MAILHOG_MESSAGES_URL).json()
     assert_that(json['total']).is_equal_to(0)
 
-def test_POST_spam_protection_empty_url_is_fine(db):
+def test_POST_spam_protection_empty_url_is_fine():
     post_payload = create_post_payload()
     post_payload['url'] = ""
     response = post_comment(post_payload)
     assert_that(response.json()['id']).is_equal_to(1)
 
-def test_escaped_HTML_XSS_protection(db):
+def test_escaped_HTML_XSS_protection():
     post_payload = create_post_payload()
     post_payload['author'] = "<strong>Peter</strong>"
     post_payload['content'] = '<script type="text/javascript">document.querySelector("aside#comment-sidecar h1").innerText = "XSS";</script>'
@@ -286,7 +293,7 @@ def test_escaped_HTML_XSS_protection(db):
         .contains_entry({'author': '&lt;strong&gt;Peter&lt;/strong&gt;'})\
         .contains_entry({'content': '&lt;script type=&quot;text/javascript&quot;&gt;document.querySelector(&quot;aside#comment-sidecar h1&quot;).innerText = &quot;XSS&quot;;&lt;/script&gt;'})
 
-def test_subscription_mail_on_reply(db):
+def test_subscription_mail_on_reply():
     clear_mails()
     path = "/commented-post/"
     site = "https://mysupersite.de"
@@ -327,7 +334,7 @@ def test_subscription_mail_on_reply(db):
         .contains(reply["author"])\
         .does_not_contain(reply["email"])
 
-def test_subscription_no_mail_on_reply_if_no_parent_mail_defined(db):
+def test_subscription_no_mail_on_reply_if_no_parent_mail_defined():
     clear_mails()
     root_payload = create_post_payload()
     root_payload.pop('email')
@@ -344,7 +351,7 @@ def test_subscription_no_mail_on_reply_if_no_parent_mail_defined(db):
     json = requests.get(MAILHOG_MESSAGES_URL).json()
     assert_no_mail_except_admin_mail(items=json['items'])
 
-def test_subscription_no_mail_on_reply_if_unsubscribed(db):
+def test_subscription_no_mail_on_reply_if_unsubscribed():
     clear_mails()
     root_payload = create_post_payload()
     root_payload["email"] = "root@root.com"
@@ -364,12 +371,12 @@ def test_subscription_no_mail_on_reply_if_unsubscribed(db):
     json = requests.get(MAILHOG_MESSAGES_URL).json()
     assert_no_mail_except_admin_mail(items=json['items'])
 
-def test_unsubscribe_missing_parameter(db):
+def test_unsubscribe_missing_parameter():
     unsubscribe_with_url_assert_error('{}'.format(UNSUBSCRIBE_URL))
     unsubscribe_with_url_assert_error('{}?commentId={}'.format(UNSUBSCRIBE_URL, 1))
     unsubscribe_with_url_assert_error('{}?unsubscribeToken={}'.format(UNSUBSCRIBE_URL, '12391023'))
 
-def test_unsubscribe(db):
+def test_unsubscribe():
     payload = create_post_payload()
     response = post_comment(payload)
     id = response.json()["id"]
@@ -379,7 +386,7 @@ def test_unsubscribe(db):
     assert_that(response.text).is_equal_to(UNSUBSCRIBE_SUCCESS_MSG)
     assume_subscription_state_in_db(id, False)
 
-def test_unsubscribe_twice(db):
+def test_unsubscribe_twice():
     payload = create_post_payload()
     response = post_comment(payload)
     id = response.json()["id"]
@@ -390,7 +397,7 @@ def test_unsubscribe_twice(db):
     assert_that(response.text).is_equal_to(UNSUBSCRIBE_ERROR_MSG)
     assume_subscription_state_in_db(id, False)
 
-def test_unsubscribe_wrong_token(db):
+def test_unsubscribe_wrong_token():
     payload = create_post_payload()
     response = post_comment(payload)
     id = response.json()["id"]
@@ -400,7 +407,7 @@ def test_unsubscribe_wrong_token(db):
     assert_that(response.text).is_equal_to(UNSUBSCRIBE_ERROR_MSG)
     assume_subscription_state_in_db(id, True)
 
-def test_unsubscribe_wrong_id(db):
+def test_unsubscribe_wrong_id():
     payload = create_post_payload()
     response = post_comment(payload)
     id = response.json()["id"]
@@ -561,10 +568,10 @@ def assert_no_mail_except_admin_mail(items):
             fail("A mail was sent (despite the admin notification) but that shouldn't happen! " + actual_mail)
 
 def get_sql_file_path():
-    path = Path("sql/create-comments-table.sql") # if invoked via make in project root
+    path = Path("sql/init.sql") # if invoked via make in project root
     if path.exists():
         return path
-    return Path("../sql/create-comments-table.sql") # if invoked directly in the IDE
+    return Path("../sql/init.sql") # if invoked directly in the IDE
 
 if __name__ == '__main__':
     unittest.main()

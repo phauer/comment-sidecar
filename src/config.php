@@ -14,3 +14,5 @@ const DB_PORT = 3306;
 const FORM_TEMPLATE = "bulma-default"; # see `form-templates folder to available form templates or define your own. examples: "bootstrap-default" or "bulma-default".
 const BUTTON_CSS_CLASSES_ADD_COMMENT = "button is-link"; # css classes for the button. bootstrap: "btn btn-link". bulma: "button is-link"
 const BUTTON_CSS_CLASSES_REPLY = "button is-link is-small"; # css classes for the button. bootstrap: "btn btn-link". bulma: "button is-link"
+
+const RATE_LIMIT_THRESHOLD_SECONDS = "0"; # how long a user (defined by their IP) have to wait until they can comment again

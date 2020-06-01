@@ -4,10 +4,6 @@ comment-sidecar is a **lightweight, tracking-free, self-hosted comment service**
 
 [![comment-sidecar frontend](screenshot-frontend-400.png)](https://raw.githubusercontent.com/phauer/comment-sidecar/master/screenshot-frontend.png)
  
-# Beta Version!
-
-The comment-sidecar is already used in production for one of my sites. So it's ready for usage. However, there are still some things to do. First and foremost, pagination and a rate limiting approach have to be implemented. 
-  
 # Features
 
 - Tracking-free and fast. The comment-sidecar only needs one additional request. Contrary, Disqus leads to **110 additional requests**! Read [here](http://donw.io/post/github-comments/) for more details about Disqus' tracking greed and performance impact.
@@ -25,6 +21,7 @@ The comment-sidecar is already used in production for one of my sites. So it's r
 - Multi-language support (pull requests adding more languages are highly welcome).
 - Customizable Form HTML
 - Import existing Disqus comments.
+- Simple rate limiting based on the IP address (`$_SERVER['REMOTE_ADDR']`)
 
 # Requirements
 
@@ -48,7 +45,7 @@ Now open [`http://localhost/playground.html`](http://localhost/playground.html) 
 
 Create a MySQL database and note the credentials. 
 
-Create the required table and the index. Therefore, execute the SQL statements in  [`sql/create-comments-table.sql`](https://github.com/phauer/comment-sidecar/blob/master/sql/create-comments-table.sql) 
+Create the required table and the index. Therefore, execute the SQL statements in  [`sql/init.sql`](https://github.com/phauer/comment-sidecar/blob/master/sql/init.sql) 
 
 Copy whole content of the `src` directory (except `playground.html`) to your web space. You can put it wherever you like. Just remember the path. The following example assumes that all files are put in the root directory `/`.
 
@@ -71,6 +68,8 @@ const DB_PORT = 3306;
 const FORM_TEMPLATE = "bootstrap-default"; # see for-templates folder to available form templates or define your own. examples: "bootstrap-default" or "bulma-default".
 const BUTTON_CSS_CLASSES_ADD_COMMENT = "btn btn-link"; # css classes for the button. bootstrap: "btn btn-link". bulma: "button is-link"
 const BUTTON_CSS_CLASSES_REPLY = "btn btn-link"; # css classes for the button. bootstrap: "btn btn-link". bulma: "button is-link is-small"
+
+const RATE_LIMIT_THRESHOLD_SECONDS = "0"; # how long a user (defined by their IP) have to wait until they can comment again
 ```
 
 Open the HTML file where you like to embed the comments. Insert the following snippet and set the correct path of `comment-sidecar.js`.
