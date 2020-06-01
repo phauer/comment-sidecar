@@ -4,7 +4,7 @@ $translations = array(
     'email' => 'E-Mail',
     'comment' => 'Kommentar',
 
-    'emailHint' => 'Die E-Mail ist optional. Wird sie angegeben, werden Benachrichtigungen geschickt, wenn eine Antwort geschrieben wird. Die E-Mail wird niemals veröffentlicht.',
+    'emailHint' => 'Die E-Mail ist optional. Wird sie angegeben, werden Benachrichtigungen geschickt, wenn eine Antwort geschrieben wird. Die E-Mail wird niemals veröffentlicht. Die E-Mail-Benachrichtigung kann mit einem Link in der E-Mail wieder deaktiviert werden.',
 
     'submit' => 'Abschicken',
     'reply' => 'Antworten',
