@@ -59,7 +59,6 @@ def test_POST_and_GET_comment(db):
         .contains_entry({'id': '1'})\
         .contains_entry({'author': post_payload["author"]})\
         .contains_entry({'content': post_payload["content"]})\
-        .contains_entry({'gravatarUrl': create_gravatar_url(post_payload["email"])}) \
         .does_not_contain_key('replies')
     assert_timestamp_between(returned_comment["creationTimestamp"], start=timestamp_before, end=timestamp_after)
     assert_absent_fields(returned_comment)
@@ -540,11 +539,6 @@ def create_post_payload():
         "path": DEFAULT_PATH,
         "site": DEFAULT_SITE
     }
-
-def create_gravatar_url(email: str) -> str:
-    md5 = hashlib.md5()
-    md5.update(email.strip().lower().encode())
-    return "https://www.gravatar.com/avatar/" + md5.hexdigest()
 
 def find_mail_by_sender(items, email_from: str):
     for item in items:

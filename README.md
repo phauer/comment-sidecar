@@ -20,7 +20,6 @@ The comment-sidecar is already used in production for one of my sites. So it's r
 - E-Mail Notification.
     - Admin receives mail for every comment.
     - Users receive Mail if there is an direct reply to their comment.
-- Gravatar support.
 - Use one comment-sidecar installation for multiple sites.
 - Replying to a comment is supported.
 - Multi-language support (pull requests adding more languages are highly welcome).

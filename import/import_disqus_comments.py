@@ -87,7 +87,7 @@ def get_comments(xml_root: ET.Element) -> List[DisqusComment]:
         id=post_xml.get(f'{dsq_ns_url}id'),
         thread_id=post_xml.find('thread', disqus_namespace).get(f'{dsq_ns_url}id'),
         author=post_xml.findtext(path="author/name", namespaces=disqus_namespace),
-        content=post_xml.findtext(path="message", namespaces=disqus_namespace),
+        content=post_xml.findtext(path="message", namespaces=disqus_namespace).strip(),
         reply_to=None if post_xml.find('parent', disqus_namespace) is None else post_xml.find('parent', disqus_namespace).get(f'{dsq_ns_url}id'),
         creation_date=post_xml.findtext(path="createdAt", namespaces=disqus_namespace),
         creation_date_timestamp=get_second_timestamp(post_xml.findtext(path="createdAt", namespaces=disqus_namespace))

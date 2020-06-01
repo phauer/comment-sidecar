@@ -1,23 +1,20 @@
 # prio 1
 
-- rewrite disqus export: use exportable XML as an input (instead of the API)
-    - test import script with IT blog
-    - write tests for the import script. maybe with my own disqus xml.
-- migration: add column for (disqus) avatars urls
-- pagination
+- disqus export: write tests for the import script. maybe with my own disqus xml.
 - rate limit
     - use dedicated table for this; POSTs are rare and can be a little slower; slow down attacker anyway. clean up job via web cron or on each POST.
 - update privacy policy
 - proper multi-site support. e.g. SITE variable set to a fixed value on the server-side.
+- pagination
 
 # prio 2
 
+- not embedd avatar svg multiple times. instead use `defs` and `use` to reuse a single declaration.
 - network_mode = hosts (required for xdebug) makes sql queries extremely slow!
 - sql injection test
 - improve replyTo check: referring id has to be in the same site and path (separate post required for this)
 - watch comments -> get notified if someone replies to my comment
     - related issues: management of subscriptions? dedicated subscription table? check/uncheck notification when posting? unsubscribe link in mail? different table? -> postpone this feature!
-    - add hint about this in the email field. "not published, but used for notification on replies and to display a gravatar avatar"
 - db:
     - index correctly used? use `explain`.
     - insert with different timezone? -> insert as unix timestamp not as string
@@ -36,10 +33,7 @@
     - drop-down indicator for "Write a Comment" and "Reply"
     - save name and email in local webstorage -> no need to type it in again.
     - after comment -> scroll to submitted comment and highlight it!
-- unrelated:
-    - md5 is very unsafe. use a spam email for gravatar! 
 - make file to automate test execution and zipping of the relevant files 
-- only request for a gravatar image if there is an email.
 - markdown support
 - OpCache to store compiled php files. 
 

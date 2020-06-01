@@ -109,16 +109,10 @@ function createReplyIdToCommentsMap($results) {
             'id' => $result['id'],
             'author' => $result['author'],
             'content' => $result['content'],
-            'creationTimestamp' => $result['creationTimestamp'],
-            'gravatarUrl' => createGravatarUrl($result['email'])
+            'creationTimestamp' => $result['creationTimestamp']
         );
     }
     return $replyToIdToCommentsMap;
-}
-
-function createGravatarUrl($email) {
-    $gravatarHash = md5(strtolower(trim($email)));
-    return "https://www.gravatar.com/avatar/$gravatarHash";
 }
 
 function createComment($comment) {

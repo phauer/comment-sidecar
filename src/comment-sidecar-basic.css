@@ -11,16 +11,15 @@ aside#comment-sidecar div.cs-post {
 }
 aside#comment-sidecar div.cs-avatar{
     float: left;
-    padding: 0px 10px 0px 5px;
-}
-aside#comment-sidecar div.cs-avatar img{
-    border-radius: 150px;
+    padding: 10px 0 0 0;
+    width: 50px;
+    color: grey;
 }
 aside#comment-sidecar div.cs-form-root {
     margin-bottom: 5px;
 }
 aside#comment-sidecar div.cs-body {
-    margin: 0px 0px 0px 80px;
+    margin: 0px 0px 0px 60px;
 }
 aside#comment-sidecar div.cs-body header.cs-header{
 }
@@ -33,8 +32,8 @@ aside#comment-sidecar div.cs-body header.cs-header span.cs-date{
     color: gray;
 }
 aside#comment-sidecar div.cs-body div.cs-content{
-    padding: 5px 0px 5px 0px;
-    margin: 5px 0px 0px 0px;
+    padding: 3px 0px 5px 0px;
+    margin: 0px 0px 0px 0px;
 }
 aside#comment-sidecar div.cs-form {
     padding: 5px;
