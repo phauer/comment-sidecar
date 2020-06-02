@@ -35,5 +35,9 @@ def test_GET_js_with_translations_path_and_site():
     assert_that(js).does_not_contain("{{BASE_PATH}}")
     assert_that(js).contains("/comment-sidecar.php")
 
+def test_use_gzip():
+    response = requests.get(COMMENT_SIDECAR_URL)
+    assert_that(response.headers['Content-Encoding']).is_equal_to("gzip")
+
 if __name__ == '__main__':
     unittest.main()

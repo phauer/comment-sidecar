@@ -432,6 +432,10 @@ def test_rate_limiting_second_request_is_okay_after_waiting_a_while():
     time.sleep(2)
     post_comment(create_post_payload(), assert_success=True)
 
+def test_use_gzip_encoding():
+    assert_that(post_comment(create_post_payload()).headers['Content-Encoding']).is_equal_to("gzip")
+    assert_that(get_comments().headers['Content-Encoding']).is_equal_to("gzip")
+
 # PRIVATE functions
 
 regex = re.compile(r'const RATE_LIMIT_THRESHOLD_SECONDS = ".*";', re.IGNORECASE)
