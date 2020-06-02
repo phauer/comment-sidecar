@@ -105,6 +105,20 @@ python import/import_disqus_comments.py --help
 python import/import_disqus_comments.py --disqus_xml_file phauer.xml --site_url https://phauer.com --cs_site_key phauer.com --db_host db_host --db_port 3306 --db_user db_user --db_password db_password --db_name db_name
 ``` 
 
+# Privacy Policy
+
+When using comment-sidecar, you might add the following to your declaration:
+
+> Comments
+>
+> When entering a comment, we ask you to enter a name (doesn't have to be your real name) and your e-mail address. The e-mail is not required. We store both values along with your comment in our database and don't pass them to third-parties. Your e-mail address will never be published. If you submit an e-mail is will be used to send notifications to you when an answer to your comment is published. You can unsubscribe from these notifications by clicking on the unsubscribe link in the e-mail.
+>
+> We don't use your data for ads or tracking. It's only about displaying the comment on this site and to send your notifications. That's all.
+>
+> You can contact us, if you want us to remove your e-mail or the whole comment from our database.
+>
+> Additionally, we store your IP address for a short amount of time (usually a couple of days). Your IP is not stored together with your name, e-mail or comment and can never be traced back to your personal data. We only use the IP to implement rate limiting and spam protection. After these short time, we will remove your IP from our database.
+
 # Development
 
 ## PHP Backend Service

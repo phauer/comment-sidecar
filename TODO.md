@@ -1,7 +1,5 @@
 # prio 1
 
-- disqus export: write tests for the import script. maybe with my own disqus xml.
-- update privacy policy
 - proper multi-site support. e.g. SITE variable set to a fixed value on the server-side.
 - pagination
 
