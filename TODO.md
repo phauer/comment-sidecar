@@ -1,8 +1,6 @@
 # prio 1
 
 - disqus export: write tests for the import script. maybe with my own disqus xml.
-- rate limit
-    - use dedicated table for this; POSTs are rare and can be a little slower; slow down attacker anyway. clean up table each POST. formulate privacy policy (IP is stored for x but can't be traced back to the comment).
 - update privacy policy
 - proper multi-site support. e.g. SITE variable set to a fixed value on the server-side.
 - pagination

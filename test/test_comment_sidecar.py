@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import re
 
 import pytest
 import requests
@@ -28,7 +29,7 @@ def db():
     # first, run `docker-compose up`
     db = connect(**MYSQLDB_CONNECTION)
     cur = db.cursor()
-    with get_sql_file_path().open('r') as sql:
+    with get_file_path('sql/init.sql').open('r') as sql:
         query = "".join(sql.readlines())
         cur.execute(query)
     return db
@@ -39,6 +40,7 @@ def before_each():
     cur = db.cursor()
     cur.execute("TRUNCATE TABLE comments;")
     cur.execute("TRUNCATE TABLE ip_addresses;")
+    set_rate_limit_threshold(seconds=0)
 
 @pytest.mark.parametrize("queryParams", {'', 'site=&path=', 'site=domain.com', 'path=blogpost1'})
 def test_GET_invalid_query_params(queryParams):
@@ -415,7 +417,34 @@ def test_unsubscribe_wrong_id():
     response = unsubscribe(123, unsubscribe_token)
     assert_that(response.text).is_equal_to(UNSUBSCRIBE_ERROR_MSG)
 
+def test_rate_limiting_second_request_is_rejected():
+    set_rate_limit_threshold(seconds=1)
+    post_comment(create_post_payload(), assert_success=True)
+    response2 = post_comment(create_post_payload(), assert_success=False)
+    assert_that(response2.status_code) \
+        .described_as("The rate limiting should prevent the second comment post") \
+        .is_equal_to(400)
+    assert_that(response2.json()['message']).contains("exceeded the maximal number of comments ")
+
+def test_rate_limiting_second_request_is_okay_after_waiting_a_while():
+    set_rate_limit_threshold(seconds=1)
+    post_comment(create_post_payload(), assert_success=True)
+    time.sleep(2)
+    post_comment(create_post_payload(), assert_success=True)
+
 # PRIVATE functions
+
+regex = re.compile(r'const RATE_LIMIT_THRESHOLD_SECONDS = ".*";', re.IGNORECASE)
+# well, it's a little bit hacky to touch the running php code in the source folder during the test
+# but it doesn't require adding complexity, performance decrease and security issues to the production code.
+def set_rate_limit_threshold(seconds):
+    new_config_string = None
+    config_path = get_file_path('src/config.php')
+    with config_path.open("r") as config_file:
+        config_string = config_file.read()
+        new_config_string = regex.sub(f'const RATE_LIMIT_THRESHOLD_SECONDS = "{seconds}";', config_string)
+    with config_path.open("w") as config_file:
+        config_file.write(new_config_string)
 
 def assume_subscription_state_in_db(comment_id, expected_subscription_state):
     db = connect(**MYSQLDB_CONNECTION)
@@ -567,11 +596,11 @@ def assert_no_mail_except_admin_mail(items):
             actual_mail = "({}; {}; {}; {})".format(item['Content']['Body'], item['Content']['Headers']['From'][0], item['Content']['Headers']['Subject'][0], item['Content']['Headers']['To'][0])
             fail("A mail was sent (despite the admin notification) but that shouldn't happen! " + actual_mail)
 
-def get_sql_file_path():
-    path = Path("sql/init.sql") # if invoked via make in project root
+def get_file_path(path):
+    path = Path(path) # if invoked via make in project root
     if path.exists():
         return path
-    return Path("../sql/init.sql") # if invoked directly in the IDE
+    return Path(f'../{path}') # if invoked directly in the IDE
 
 if __name__ == '__main__':
     unittest.main()
