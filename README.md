@@ -2,15 +2,14 @@
 
 comment-sidecar is a **lightweight, tracking-free, self-hosted comment service**. It aims at restricted self-hosted web spaces where only **PHP and MySQL** are available. And it is easy to embed into statically generated sites that are created with Hugo or Jekyll. It's a Disqus alternative.
 
-[![comment-sidecar frontend](screenshot-frontend-400.png)](https://raw.githubusercontent.com/phauer/comment-sidecar/master/screenshot-frontend.png)
+[![comment-sidecar frontend](docs/screenshot-frontend-400.png)](https://raw.githubusercontent.com/phauer/comment-sidecar/master/docs/screenshot-frontend.png)
  
 # Features
 
-- Tracking-free and fast. The comment-sidecar only needs one additional request. Contrary, Disqus leads to **110 additional requests**! Read [here](http://donw.io/post/github-comments/) for more details about Disqus' tracking greed and performance impact.
-- Privacy. Your data belongs to you.
+- Tracking-free and fast. The comment-sidecar only needs two additional requests. Contrary, Disqus leads to **110 additional requests**. Read [here](http://donw.io/post/github-comments/) for more details about Disqus' tracking greed and performance impact.
+- Privacy. No Tracking. comment-sidecar only saves the data that are required. The E-Mail is optional and only used for notifications. The IP is only saved for a short amount of time and can't be traced back to the E-Mail. It's used to support basic rate limiting. 
 - Easy to integrate. Just a simple Javascript call. This makes it easy to use the comment-sidecar in conjunction with static site generators like **Hugo** or Jekyll. You don't have to integrate PHP code in the generated HTML files.
 - Lightweight: No additional PHP or JavaScript dependencies. Just drop the files on your web server and you are good to go.
-- No account required. The visitors of your site don't need to have an account to drop a comment.
 - No performance impact on TTFB (Time To First Byte), because the comments are loaded asynchronously.
 - Spam Protection.
 - E-Mail Notification.
@@ -19,15 +18,27 @@ comment-sidecar is a **lightweight, tracking-free, self-hosted comment service**
 - Use one comment-sidecar installation for multiple sites.
 - Replying to a comment is supported.
 - Multi-language support (pull requests adding more languages are highly welcome).
-- Customizable Form HTML
+- Customizable form HTML
 - Import existing Disqus comments.
 - Simple rate limiting based on the IP address (`$_SERVER['REMOTE_ADDR']`)
+
+# What's Different to Disqus
+
+- Everyone can comment. There is no registration required to write a comment.
+- Currently, you can't edit a post after the submission.
+- There is no individual avatar. I remove the Gravatar support due to privacy concerns: I don't want to share my visitor's data with Gravatar. Moreover, it's too easy to get their E-Mail out of the MD5 hash in the image URL.
+
+# Before and After
+
+I migrated my [blog](https://phauer.com) from Disqus to Comment-Sidecar. Here you can see the metrics of the Chrome Dev Tools and Lighthouse. Mind, that you can achieve the same performance also with many other Disqus alternatives.
+
+![Before and After the Disqus Migration on phauer.com](docs/before-after-phauer-com.png)
 
 # Requirements
 
 - PHP. Tested with 7.1.
 - A MySQL database. Tested with 5.7.28.
-- Some native [ECMAScript 6](http://es6-features.org/) support in the user's browser. For now, the comment-sidecar requires support for basic ECMAScript 6 features like [arrow functions](http://www.caniuse.com/#search=arrow), [`const`](http://www.caniuse.com/#search=const), [template literals](http://www.caniuse.com/#search=template) and other modern methods like [`querySelector()`](http://www.caniuse.com/#search=queryselector) and [`fetch()`](http://www.caniuse.com/#search=fetch). Currently, the supporting browser versions have a global usage of 73% - 98%. This was good enough for me. So I decided against a compilation with Babel in order to avoid a dedicated build process. However, pull requests are always welcome. Alternatively, you can compile the `comment-sidecar.js` manually once only.
+- Some native [ECMAScript 6](http://es6-features.org/) support in the user's browser. For now, the comment-sidecar requires support for basic ECMAScript 6 features like [arrow functions](http://www.caniuse.com/#search=arrow), [`const`](http://www.caniuse.com/#search=const), [template literals](http://www.caniuse.com/#search=template) and other modern methods like [`querySelector()`](http://www.caniuse.com/#search=queryselector) and [`fetch()`](http://www.caniuse.com/#search=fetch). Currently, the supporting browser versions have a global usage of 95% - 98%. This was good enough for me. So I decided against a compilation with Babel in order to avoid a dedicated build process. However, pull requests are always welcome. Alternatively, you can compile the `comment-sidecar.js` manually once only.
 
 # Try it out up front!
 
@@ -45,19 +56,19 @@ Now open [`http://localhost/playground.html`](http://localhost/playground.html) 
 
 Create a MySQL database and note the credentials. 
 
-Create the required table and the index. Therefore, execute the SQL statements in  [`sql/init.sql`](https://github.com/phauer/comment-sidecar/blob/master/sql/init.sql) 
+Create the required tables and the index. Therefore, execute the SQL statements in  [`sql/init.sql`](https://github.com/phauer/comment-sidecar/blob/master/sql/init.sql) 
 
-Copy whole content of the `src` directory (except `playground.html`) to your web space. You can put it wherever you like. Just remember the path. The following example assumes that all files are put in the root directory `/`.
+Copy the whole content of the `src` directory (except `playground.html`) to your web space. You can put it wherever you like. Just remember the path. The following example assumes that all files are put in the root directory `/`.
 
 Open `config.php` and configure it:
 
 ```php
 <?php
-const LANGUAGE = "en"; # see translations folder for supported languages
-const SITE = "domain.com"; # key for this site to identity comment of this site
-const E_MAIL_FOR_NOTIFICATIONS = "your.email@domain.com";
-const BASE_URL = "http://domainC.com/"; # base url of the comment-sidecar backend. can differ from the embedding site.
-const ALLOWED_ACCESSING_SITES = [ "http://domainA.com", "http://domainB.com" ]; # sites that are allowed to access the backend (required for multisite setups, where the backend is deployed on a different domain than the embedding site.)
+const LANGUAGE = "en"; # see the `translations` folder for supported languages
+const SITE = "mydomain.com"; # key for this site to identity comments of this site
+const E_MAIL_FOR_NOTIFICATIONS = "your.email@domain.com"; # admin mail that will receive a notification e-mail after every new comment
+const BASE_URL = "http://mydomain.com/"; # base url of the comment-sidecar backend. can differ from the embedding site.
+const ALLOWED_ACCESSING_SITES = [ "http://domainA.com", "http://domainB.com" ]; # sites that are allowed to access the backend (required when the backend is deployed on a different domain than the embedding site.)
 
 const DB_HOST = 'localhost'; # to access from host system, use 127.0.0.1
 const DB_NAME = 'wb3d23s';
@@ -65,14 +76,14 @@ const DB_USER = 'wb3d23s';
 const DB_PW = '1234';
 const DB_PORT = 3306;
 
-const FORM_TEMPLATE = "bootstrap-default"; # see for-templates folder to available form templates or define your own. examples: "bootstrap-default" or "bulma-default".
+const FORM_TEMPLATE = "bootstrap-default"; # see the `form-templates` folder for the available form templates or define your own. examples: "bootstrap-default" or "bulma-default".
 const BUTTON_CSS_CLASSES_ADD_COMMENT = "btn btn-link"; # css classes for the button. bootstrap: "btn btn-link". bulma: "button is-link"
 const BUTTON_CSS_CLASSES_REPLY = "btn btn-link"; # css classes for the button. bootstrap: "btn btn-link". bulma: "button is-link is-small"
 
-const RATE_LIMIT_THRESHOLD_SECONDS = "0"; # how long a user (defined by their IP) have to wait until they can comment again
+const RATE_LIMIT_THRESHOLD_SECONDS = "60"; # how long a user (defined by their IP) have to wait until they can comment again
 ```
 
-Open the HTML file where you like to embed the comments. Insert the following snippet and set the correct path of `comment-sidecar.js`.
+Open the HTML file where you like to embed the comments. Insert the following snippet and set the correct path of the `comment-sidecar-js-delivery.php` file.
 
 ```html
 <aside id="comment-sidecar"></aside>
@@ -81,7 +92,7 @@ Open the HTML file where you like to embed the comments. Insert the following sn
         const scriptNode = document.createElement('script');
         scriptNode.type = 'text/javascript';
         scriptNode.async = true;
-        scriptNode.src = 'http://domainC.com/comment-sidecar-js-delivery.php'; //adjust to the correct path
+        scriptNode.src = 'http://domainC.com/comment-sidecar-js-delivery.php'; // adjust to the correct path
         (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(scriptNode);
     })();
 </script>
@@ -93,14 +104,18 @@ A complete example for the frontend can be found in [`src/playground.html`](http
 
 # Import Existing Disqus Comments into Comment-Sidecar
 
+The import script needs Python 3 and the dependency management tool [Poetry](https://python-poetry.org/).
+
 First, Export your Disqus Comments as an XML file. Details can be found [here](https://help.disqus.com/en/articles/1717164-comments-export).
 
 Second, call
 
 ```bash
 poetry shell
-# print help and some descriptions
+
+# print the help for the CLI
 python import/import_disqus_comments.py --help 
+
 # execute the command
 python import/import_disqus_comments.py --disqus_xml_file phauer.xml --site_url https://phauer.com --cs_site_key phauer.com --db_host db_host --db_port 3306 --db_user db_user --db_password db_password --db_name db_name
 ``` 
@@ -136,14 +151,14 @@ http POST http://localhost/comment-sidecar.php < adhoc/comment-payload.json
 
 ## Run the Python Tests for the Backend
 
+Python 3.5+ and [Poetry](https://python-poetry.org/) is required. Check `python3 --version`. On Arch Linux, you can install Poetry with `yay install python-poetry`,
+
 ```bash
 # start mysql database and mailhog in docker containers
 docker-compose up -d
 
-# set up python environment
-python3 --version # you need at least python 3.5 to run the tests
-# install poetry. e.g. `yay install python-poetry`
-poetry install # install devs in a venv
+# install dependencies in a venv
+poetry install 
 poetry env info 
 # configure your IDE with the displayed path
 # now, you can execute the tests directly from the IDE
