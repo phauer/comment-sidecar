@@ -81,6 +81,7 @@ const BUTTON_CSS_CLASSES_ADD_COMMENT = "btn btn-link"; # css classes for the but
 const BUTTON_CSS_CLASSES_REPLY = "btn btn-link"; # css classes for the button. bootstrap: "btn btn-link". bulma: "button is-link is-small"
 
 const RATE_LIMIT_THRESHOLD_SECONDS = "60"; # how long a user (defined by their IP) have to wait until they can comment again
+const UNSUBSCRIBE_DELAY_SECONDS = "2"; # artificially delay responses of the unsubscribe link to delay brute force attacks.
 ```
 
 Open the HTML file where you like to embed the comments. Insert the following snippet and set the correct path of the `comment-sidecar-js-delivery.php` file.
