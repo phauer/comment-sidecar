@@ -33,7 +33,7 @@ function unsubscribe() {
         throw new InvalidRequestException("Please submit both query parameters 'commentId' and 'unsubscribeToken'");
     }
     $handler = connect();
-    $stmt = $handler->prepare("UPDATE comments SET subscribed = false WHERE id = :commentId and unsubscribe_token = :unsubscribeToken;");
+    $stmt = $handler->prepare("UPDATE comments SET subscribed = false, email = null WHERE id = :commentId and unsubscribe_token = :unsubscribeToken;");
     $stmt->bindParam(":commentId", $_GET['commentId']);
     $stmt->bindParam(":unsubscribeToken", $_GET['unsubscribeToken']);
     $stmt->execute();
@@ -41,7 +41,7 @@ function unsubscribe() {
         echo "Nothing has been updated. Either the comment doesn't exist or the unsubscribe token is invalid.";
     }
     if ($stmt->rowCount() === 1){
-        echo "You have been unsubscribed successfully.";
+        echo "You have been unsubscribed successfully. Your e-mail address has been deleted.";
     }
     $handler = null; //close connection
 }

@@ -11,7 +11,7 @@ import time
 from path import Path
 from assertpy import assert_that, fail
 
-UNSUBSCRIBE_SUCCESS_MSG = "You have been unsubscribed successfully."
+UNSUBSCRIBE_SUCCESS_MSG = "unsubscribed successfully"
 UNSUBSCRIBE_ERROR_MSG = "Nothing has been updated. Either the comment doesn't exist or the unsubscribe token is invalid."
 ADMIN_EMAIL = 'test@localhost.de'
 DEFAULT_PATH = "/blogpost1/"
@@ -385,7 +385,7 @@ def test_unsubscribe():
     assume_subscription_state_in_db(id, True)
     unsubscribe_token = retrieve_unsubscribe_token_from_db(id)
     response = unsubscribe(id, unsubscribe_token)
-    assert_that(response.text).is_equal_to(UNSUBSCRIBE_SUCCESS_MSG)
+    assert_that(response.text).contains(UNSUBSCRIBE_SUCCESS_MSG)
     assume_subscription_state_in_db(id, False)
 
 def test_unsubscribe_twice():
@@ -453,12 +453,16 @@ def set_rate_limit_threshold(seconds):
 def assume_subscription_state_in_db(comment_id, expected_subscription_state):
     db = connect(**MYSQLDB_CONNECTION)
     cur = db.cursor()
-    cur.execute("SELECT subscribed FROM comments WHERE id = {}".format(comment_id))
-    subscribed = cur.fetchone()[0]
+    cur.execute("SELECT subscribed, email FROM comments WHERE id = {}".format(comment_id))
+    result = cur.fetchone()
+    subscribed = result[0]
+    email = result[1]
     if expected_subscription_state:
         assert_that(subscribed).described_as('subscribed state').is_equal_to(1)
+        assert_that(email).described_as('email').is_not_none()
     else:
         assert_that(subscribed).described_as('subscribed state').is_equal_to(0)
+        assert_that(email).described_as('email').is_none()
 
 def retrieve_unsubscribe_token_from_db(comment_id):
     db = connect(**MYSQLDB_CONNECTION)

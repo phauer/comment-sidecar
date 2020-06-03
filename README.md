@@ -126,7 +126,7 @@ When using comment-sidecar, you might add the following to your declaration:
 
 > Comments
 >
-> When entering a comment, we ask you to enter a name (doesn't have to be your real name) and your e-mail address. The e-mail is not required. We store both values along with your comment in our database and don't pass them to third-parties. Your e-mail address will never be published. If you submit an e-mail is will be used to send notifications to you when an answer to your comment is published. You can unsubscribe from these notifications by clicking on the unsubscribe link in the e-mail.
+> When entering a comment, we ask you to enter a name (doesn't have to be your real name) and your e-mail address. The e-mail is not required. We store both values along with your comment in our database and don't pass them to third-parties. Your e-mail address will never be published. If you submit an e-mail is will be used to send notifications to you when an answer to your comment is published. You can unsubscribe from these notifications and delete your e-mail address by clicking on the unsubscribe link in the e-mail.
 >
 > We don't use your data for ads or tracking. It's only about displaying the comment on this site and to send your notifications. That's all.
 >
