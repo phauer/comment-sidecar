@@ -25,7 +25,7 @@ comment-sidecar is a **lightweight, tracking-free, self-hosted comment service**
 # What's Different to Disqus
 
 - Everyone can comment. There is no registration required to write a comment.
-- Currently, you can't edit a post after the submission.
+- Currently, you can't edit or delete a post after the submission.
 - There is no individual avatar. I remove the Gravatar support due to privacy concerns: I don't want to share my visitor's data with Gravatar. Moreover, it's too easy to get their E-Mail out of the MD5 hash in the image URL.
 
 # Before and After

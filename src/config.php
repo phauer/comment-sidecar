@@ -2,7 +2,7 @@
 const LANGUAGE = "en"; # see the `translations` folder for supported languages
 const SITE = "mydomain.com"; # key for this site to identity comments of this site. it will also be used to build urls.
 const E_MAIL_FOR_NOTIFICATIONS = "test@localhost.de"; # admin mail that will receive a notification e-mail after every new comment
-const BASE_URL = "http://mydomain.com/"; # base url of the comment-sidecar backend. can differ from the embedding site.
+const BASE_URL = "http://localhost/"; # base url of the comment-sidecar backend. can differ from the embedding site.
 const ALLOWED_ACCESSING_SITES = [ "http://localhost:1313", "http://localhost:3000", "http://testdomain.com" ]; # sites that are allowed to access the backend (required when the backend is deployed on a different domain than the embedding site.)
 
 const DB_HOST = 'mysql'; # to access from host system, use 127.0.0.1
