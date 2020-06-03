@@ -16,9 +16,6 @@ click = "^7.1.2"
 [tool.poetry.dev-dependencies]
 pytest = "^5.4.2"
 
-# TODO
-# [tool.poetry.scripts]
-
 [build-system]
 requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"
