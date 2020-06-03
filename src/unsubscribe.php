@@ -28,6 +28,7 @@ function main() {
 }
 
 function unsubscribe() {
+    sleep(UNSUBSCRIBE_DELAY_SECONDS); // delay brute force attacks
     if (!isset($_GET['commentId']) or empty($_GET['commentId'])
         or !isset($_GET['unsubscribeToken']) or empty($_GET['unsubscribeToken'])) {
         throw new InvalidRequestException("Please submit both query parameters 'commentId' and 'unsubscribeToken'");

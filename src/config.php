@@ -20,3 +20,4 @@ const BUTTON_CSS_CLASSES_REPLY = "btn btn-link"; # css classes for the button. b
 
 # mind, that the following line is temporarily changed by the integration test
 const RATE_LIMIT_THRESHOLD_SECONDS = "0"; # how long a user (defined by their IP) have to wait until they can comment again
+const UNSUBSCRIBE_DELAY_SECONDS = "0"; # artificially delay responses of the unsubscribe link to delay brute force attacks.
