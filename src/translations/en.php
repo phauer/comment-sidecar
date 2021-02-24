@@ -24,7 +24,7 @@ $translations = array(
 
     # reply notification e-mail
     'subject' => 'Reply to your comment by {}',
-    'introduction' => 'there is a reply to our comment.',
+    'introduction' => 'There is a reply to your comment.',
     'author' => 'Author',
     'message' => 'Message',
     'unsubscribeDescription' => 'To unsubscribe mail notifications like this please click on the following link:',
