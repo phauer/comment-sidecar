@@ -10,6 +10,6 @@
   },
   "author": "Philipp Hauer",
   "devDependencies": {
-    "browser-sync": "^2.26.7"
+    "browser-sync": "^2.27.10"
   }
 }
