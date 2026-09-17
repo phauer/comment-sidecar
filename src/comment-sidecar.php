@@ -1,5 +1,5 @@
 <?php
-include_once "common.php";
+include_once __DIR__ . "/common.php";
 
 /**
  * HTTP endpoints
@@ -9,8 +9,8 @@ include_once "common.php";
  *      create a new comment
  */
 function main() {
-    $method = $_SERVER['REQUEST_METHOD'];
-    header('Content-Type: application/json');
+    $method = $_SERVER['REQUEST_METHOD'] ?? '';
+    header('Content-Type: application/json; charset=UTF-8');
     setCORSHeader();
     $rateLimiter = new RateLimiter();
     try {
@@ -20,7 +20,10 @@ function main() {
                 break;
             }
             case 'POST': {
-                $comment = json_decode(file_get_contents('php://input'),true);
+                $comment = json_decode(file_get_contents('php://input'), true);
+                if (!is_array($comment)) {
+                    throw new InvalidRequestException("Request body must contain a valid JSON object.");
+                }
                 checkForSpam($comment);
                 validatePostedComment($comment);
                 $rateLimiter->checkIpAgainstRateLimit();
@@ -39,21 +42,26 @@ function main() {
                 //this case is just for documentation
                 break;
             }
+            default: {
+                header('Allow: GET, POST, OPTIONS');
+                http_response_code(405);
+                echo json_encode([ "message" => "Method not allowed." ]);
+                break;
+            }
         }
-    } catch (Exception $ex) {
+    } catch (Throwable $ex) {
         if ($ex instanceof InvalidRequestException) {
             http_response_code(400);
-            echo '{ "message" : "' . $ex->getMessage() . '" }';
         } else { //like PDOException
             http_response_code(500);
-            echo '{ "message" : "' . $ex->getMessage() . '" }';
         }
+        echo json_encode([ "message" => $ex->getMessage() ], JSON_UNESCAPED_UNICODE);
     }
 }
 
 function setCORSHeader() {
-    $http_origin = $_SERVER['HTTP_ORIGIN'];
-    if (in_array($http_origin, ALLOWED_ACCESSING_SITES)) {
+    $http_origin = $_SERVER['HTTP_ORIGIN'] ?? null;
+    if ($http_origin !== null && in_array($http_origin, ALLOWED_ACCESSING_SITES, true)) {
         header("Access-Control-Allow-Origin: $http_origin");
         header('Access-Control-Allow-Methods: GET, POST');
         header('Access-Control-Allow-Headers: Content-Type');
@@ -85,7 +93,7 @@ function mapToJson($results) {
         return json_encode([]);
     }
     $replyToIdToCommentsMap = createReplyIdToCommentsMap($results);
-    $rootComments = $replyToIdToCommentsMap[ROOT];
+    $rootComments = $replyToIdToCommentsMap[ROOT] ?? [];
     nestRepliesIntoTheirParentComments($rootComments, $replyToIdToCommentsMap);
     return json_encode($rootComments);
 }
@@ -121,13 +129,15 @@ function createReplyIdToCommentsMap($results) {
 function createComment($comment) {
     try {
         $stmt = Database::getConnection()->prepare("INSERT INTO comments (author, email, content, reply_to, site, path, subscribed, unsubscribe_token) VALUES (:author, :email, :content, :reply_to, :site, :path, :subscribed, :unsubscribe_token);");
-        $author = htmlspecialchars($comment["author"]);
-        $content = htmlspecialchars($comment["content"]);
-        $subscribed = (isset($comment["email"]) and !empty(trim($comment['email'])));
+        $author = htmlspecialchars($comment["author"], ENT_COMPAT | ENT_SUBSTITUTE, 'UTF-8');
+        $content = htmlspecialchars($comment["content"], ENT_COMPAT | ENT_SUBSTITUTE, 'UTF-8');
+        $email = $comment["email"] ?? null;
+        $replyTo = $comment["replyTo"] ?? null;
+        $subscribed = ($email !== null && trim($email) !== '');
         $stmt->bindParam(':author', $author);
-        $stmt->bindParam(':email', $comment["email"]); // optional. can be null
+        $stmt->bindParam(':email', $email); // optional. can be null
         $stmt->bindParam(':content', $content);
-        $stmt->bindParam(':reply_to', $comment['replyTo']);
+        $stmt->bindParam(':reply_to', $replyTo);
         $stmt->bindParam(':site', $comment["site"]);
         $stmt->bindParam(':path', $comment["path"]);
         $stmt->bindValue(':subscribed', $subscribed, PDO::PARAM_BOOL);
@@ -148,7 +158,13 @@ function generateRandomString($length = 10) {
 }
 
 function checkForSpam($comment) {
-    if (isset($comment['url']) and !empty(trim($comment['url']))) {
+    if (!isset($comment['url'])) {
+        return;
+    }
+    if (!is_string($comment['url'])) {
+        throw new InvalidRequestException("url must be a string.");
+    }
+    if (trim($comment['url']) !== '') {
        throw new InvalidRequestException("");
     }
 }
@@ -165,15 +181,34 @@ function validatePostedComment($comment){
 }
 
 function checkMaxLength($comment, $fieldName, $maxLength) {
-    if (strlen($comment[$fieldName]) > $maxLength) {
+    if (!array_key_exists($fieldName, $comment) || $comment[$fieldName] === null) {
+        return;
+    }
+    if (!is_string($comment[$fieldName])) {
+        throw new InvalidRequestException("$fieldName must be a string.");
+    }
+    if (utf8Length($comment[$fieldName]) > $maxLength) {
         throw new InvalidRequestException("$fieldName value exceeds maximal length of " . $maxLength);
     }
 }
 
 function checkExistence($comment, $field) {
-    if (!isset($comment[$field]) or empty(trim($comment[$field]))) {
+    if (!array_key_exists($field, $comment)
+        || !is_string($comment[$field])
+        || trim($comment[$field]) === '') {
         throw new InvalidRequestException("$field is missing, empty or blank");
     }
+}
+
+function utf8Length($value) {
+    if (function_exists('mb_strlen')) {
+        return mb_strlen($value, 'UTF-8');
+    }
+    $length = preg_match_all('/./us', $value, $matches);
+    if ($length === false) {
+        throw new InvalidRequestException("Input must be valid UTF-8.");
+    }
+    return $length;
 }
 
 function sendNotificationToAdminViaMail($comment) {
@@ -186,7 +221,7 @@ function sendNotificationToAdminViaMail($comment) {
     $message .= "URL: $commentUrl\n";
     $message .= "Message: " . $comment["content"] . "\n";
     $subject = "Comment by $author on $path";
-    sendMail(E_MAIL_FOR_NOTIFICATIONS, $comment['author'], $comment['email'], $message, $subject);
+    sendMail(E_MAIL_FOR_NOTIFICATIONS, $comment['author'], $comment['email'] ?? null, $message, $subject);
 }
 
 function sendNotificationToParentAuthorViaMail($new_comment){
@@ -215,8 +250,8 @@ function createCommentUrl($comment): string {
 }
 
 function sendMail($toMail, $fromName, $fromEmail, $message, $subject){
-    $from = (isset($fromEmail) and !empty($fromEmail)) ? "$fromName<${fromEmail}>" : "$fromName";
-    $headers = "From: ${from}\n";
+    $from = (isset($fromEmail) and !empty($fromEmail)) ? "$fromName<{$fromEmail}>" : "$fromName";
+    $headers = "From: {$from}\n";
     $headers .= "Mime-Version: 1.0\n";
     $headers .= "Content-Type: text/plain; charset=UTF-8\n";
     $headers .= "Content-Transfer-Encoding: 8bit\n";
@@ -228,11 +263,8 @@ function find_parent_author_email($parentCommentId) {
     $stmt = Database::getConnection()->prepare("SELECT * FROM comments WHERE id = :parent_comment_id AND subscribed = true");
     $stmt->bindParam(':parent_comment_id', $parentCommentId);
     $stmt->execute();
-    if ($stmt->rowCount() == 0){
-        return null;
-    }
-    $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    return $results[0];
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $result === false ? null : $result;
 }
 
 class RateLimiter {
@@ -249,13 +281,14 @@ class RateLimiter {
         $stmt->bindParam(":ip", $ip);
         $stmt->execute();
         $count =  $stmt->fetchColumn();
-        return $count == 1;
+        return $count > 0;
     }
 
     private function clean_up_outdated_ips() {
-        $stmt = Database::getConnection()->prepare("DELETE FROM ip_addresses WHERE creation_date < ADDDATE(NOW(6), INTERVAL -:rateLimitThreshold SECOND);");
-        $rateLimitThreshold = RATE_LIMIT_THRESHOLD_SECONDS;
-        $stmt->bindParam(":rateLimitThreshold", $rateLimitThreshold);
+        $rateLimitThreshold = max(0, (int) RATE_LIMIT_THRESHOLD_SECONDS);
+        $stmt = Database::getConnection()->prepare(
+            "DELETE FROM ip_addresses WHERE creation_date < DATE_SUB(NOW(6), INTERVAL $rateLimitThreshold SECOND);"
+        );
         $stmt->execute();
     }
 

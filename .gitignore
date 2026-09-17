@@ -6,3 +6,4 @@ deploy-and-destribute.sh
 import/*.xml
 import/*.xml.gz
 .venv/
+.venv-r1-tests/

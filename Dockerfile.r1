@@ -1,0 +1,24 @@
+ARG PHP_VERSION=8.2
+FROM php:${PHP_VERSION}-apache
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates msmtp-mta \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN docker-php-ext-install mysqli pdo pdo_mysql
+RUN a2enmod rewrite
+
+# Route PHP mail() to the MailHog service used by the existing integration tests.
+RUN printf '%s\n' \
+    'defaults' \
+    'auth off' \
+    'tls off' \
+    'account default' \
+    'host mailhog' \
+    'port 1025' \
+    'from comment-sidecar@localhost' \
+    > /etc/msmtprc \
+    && chown root:www-data /etc/msmtprc \
+    && chmod 640 /etc/msmtprc \
+    && printf '%s\n' 'sendmail_path = "/usr/bin/msmtp -t"' \
+    > /usr/local/etc/php/conf.d/comment-sidecar-mail.ini

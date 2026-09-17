@@ -1,5 +1,5 @@
 <?php
-include_once "common.php";
+include_once __DIR__ . "/common.php";
 
 /**
  * HTTP endpoint
@@ -8,27 +8,32 @@ include_once "common.php";
  * Definitely not restful, but this way, the user only has to click on a link in the email. at least, it's idempotent. ;-)
  */
 function main() {
-    $method = $_SERVER['REQUEST_METHOD'];
+    $method = $_SERVER['REQUEST_METHOD'] ?? '';
     try {
         switch ($method) {
             case 'GET': {
                 unsubscribe();
                 break;
             }
+            default: {
+                header('Allow: GET');
+                http_response_code(405);
+                echo "Method not allowed.";
+                break;
+            }
         }
-    } catch (Exception $ex) {
+    } catch (Throwable $ex) {
         if ($ex instanceof InvalidRequestException) {
             http_response_code(400);
-            echo '{ "message" : "' . $ex->getMessage() . '" }';
         } else { //like PDOException
             http_response_code(500);
-            echo '{ "message" : "' . $ex->getMessage() . '" }';
         }
+        echo json_encode([ "message" => $ex->getMessage() ], JSON_UNESCAPED_UNICODE);
     }
 }
 
 function unsubscribe() {
-    sleep(UNSUBSCRIBE_DELAY_SECONDS); // delay brute force attacks
+    sleep(max(0, (int) UNSUBSCRIBE_DELAY_SECONDS)); // delay brute force attacks
     if (!isset($_GET['commentId']) or empty($_GET['commentId'])
         or !isset($_GET['unsubscribeToken']) or empty($_GET['unsubscribeToken'])) {
         throw new InvalidRequestException("Please submit both query parameters 'commentId' and 'unsubscribeToken'");

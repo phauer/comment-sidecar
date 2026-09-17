@@ -1,0 +1,40 @@
+services:
+  apache_with_php:
+    build:
+      context: .
+      dockerfile: Dockerfile.r1
+      args:
+        PHP_VERSION: ${PHP_VERSION:-8.2}
+    volumes:
+      - ./src:/var/www/html/
+    ports:
+      - "${R1_HTTP_PORT:-18080}:80"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      mailhog:
+        condition: service_started
+
+  mysql:
+    image: ${DB_IMAGE:-mariadb:11.4}
+    volumes:
+      - ./sql:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "${R1_MYSQL_PORT:-13306}:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: comment-sidecar
+      MARIADB_ROOT_PASSWORD: root
+      MARIADB_DATABASE: comment-sidecar
+    healthcheck:
+      test: ["CMD-SHELL", "if command -v mariadb >/dev/null 2>&1; then mariadb -h 127.0.0.1 -uroot -proot -D comment-sidecar -e 'SELECT 1 FROM ip_addresses LIMIT 1' >/dev/null 2>&1; else mysql -h 127.0.0.1 -uroot -proot -D comment-sidecar -e 'SELECT 1 FROM ip_addresses LIMIT 1' >/dev/null 2>&1; fi"]
+      start_period: 10s
+      interval: 2s
+      timeout: 5s
+      retries: 30
+
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    ports:
+      - "${R1_MAILHOG_SMTP_PORT:-11025}:1025"
+      - "${R1_MAILHOG_HTTP_PORT:-18025}:8025"

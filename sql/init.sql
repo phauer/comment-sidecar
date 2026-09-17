@@ -13,7 +13,7 @@ CREATE TABLE comments (
   `creation_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP(),
   -- don't change the name 'replyTo_refers_to_existing_id' without adapting the referring php code.
   CONSTRAINT replyTo_refers_to_existing_id FOREIGN KEY comments(reply_to) REFERENCES comments(id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE INDEX read_index ON comments (`site`, `path`, `creation_date`);
 
@@ -23,4 +23,4 @@ DROP TABLE IF EXISTS ip_addresses;
 CREATE TABLE ip_addresses (
     `ip` varchar(45) NOT NULL,
     `creation_date` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

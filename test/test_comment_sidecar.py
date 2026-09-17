@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import os
 import re
 
 import pytest
@@ -18,21 +19,43 @@ DEFAULT_PATH = "/blogpost1/"
 DEFAULT_SITE = "https://petersworld.com"
 ERROR_MESSAGE_MISSING_SITE_PATH = "Please submit both query parameters 'site' and 'path'"
 INVALID_QUERY_PARAMS_UNSUBSCRIBE = "Please submit both query parameters 'commentId' and 'unsubscribeToken'"
-COMMENT_SIDECAR_URL = 'http://localhost/comment-sidecar.php'
-UNSUBSCRIBE_URL = 'http://localhost/unsubscribe.php'
-MAILHOG_BASE_URL = 'http://localhost:8025/api/'
+COMMENT_SIDECAR_BASE_URL = os.environ.get(
+    'COMMENT_SIDECAR_BASE_URL', 'http://localhost'
+).rstrip('/')
+COMMENT_SIDECAR_URL = f'{COMMENT_SIDECAR_BASE_URL}/comment-sidecar.php'
+UNSUBSCRIBE_URL = f'{COMMENT_SIDECAR_BASE_URL}/unsubscribe.php'
+
+COMMENT_SIDECAR_PUBLIC_BASE_URL = os.environ.get(
+    'COMMENT_SIDECAR_PUBLIC_BASE_URL', 'http://localhost'
+).rstrip('/')
+UNSUBSCRIBE_PUBLIC_URL = f'{COMMENT_SIDECAR_PUBLIC_BASE_URL}/unsubscribe.php'
+
+MAILHOG_BASE_URL = os.environ.get(
+    'MAILHOG_BASE_URL', 'http://localhost:8025/api/'
+)
 MAILHOG_MESSAGES_URL = MAILHOG_BASE_URL + 'v2/messages'
-MYSQLDB_CONNECTION = {'host': '127.0.0.1', 'port': 3306, 'user': 'root', 'passwd': 'root', 'db': 'comment-sidecar'}
+
+MYSQLDB_CONNECTION = {
+    'host': '127.0.0.1',
+    'port': int(os.environ.get('MYSQL_PORT', '3306')),
+    'user': 'root',
+    'passwd': 'root',
+    'db': 'comment-sidecar',
+}
 
 @pytest.fixture(scope="module", autouse=True)
 def db():
-    # first, run `docker-compose up`
+    # Docker initializes sql/init.sql through /docker-entrypoint-initdb.d.
+    # Verify that the expected schema is present instead of executing the
+    # multi-statement initialization script again through mysql-connector.
     db = connect(**MYSQLDB_CONNECTION)
     cur = db.cursor()
-    with get_file_path('sql/init.sql').open('r') as sql:
-        query = "".join(sql.readlines())
-        cur.execute(query)
-    return db
+    cur.execute("SELECT 1 FROM comments LIMIT 1;")
+    cur.fetchall()
+    cur.execute("SELECT 1 FROM ip_addresses LIMIT 1;")
+    cur.fetchall()
+    cur.close()
+    db.close()
 
 @pytest.fixture(scope="function", autouse=True)
 def before_each():
@@ -42,7 +65,7 @@ def before_each():
     cur.execute("TRUNCATE TABLE ip_addresses;")
     set_rate_limit_threshold(seconds=0)
 
-@pytest.mark.parametrize("queryParams", {'', 'site=&path=', 'site=domain.com', 'path=blogpost1'})
+@pytest.mark.parametrize("queryParams", ['', 'site=&path=', 'site=domain.com', 'path=blogpost1'])
 def test_GET_invalid_query_params(queryParams):
     response = requests.get(f'{COMMENT_SIDECAR_URL}?{queryParams}')
     assert_that(response.status_code).is_equal_to(400)
@@ -328,7 +351,7 @@ def test_subscription_mail_on_reply():
         .has_to(parent["email"])
 
     unsubscribe_token = retrieve_unsubscribe_token_from_db(parent_id)
-    unsubscribe_link = "{}?commentId={}&unsubscribeToken={}".format(UNSUBSCRIBE_URL, parent_id, unsubscribe_token)
+    unsubscribe_link = "{}?commentId={}&unsubscribeToken={}".format(UNSUBSCRIBE_PUBLIC_URL, parent_id, unsubscribe_token)
     link_to_site = "{}{}#comment-sidecar".format(site, path)
     assert_that(mail["body"]).contains(reply["content"])\
         .contains(unsubscribe_link)\

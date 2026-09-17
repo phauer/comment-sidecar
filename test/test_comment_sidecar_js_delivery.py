@@ -1,11 +1,17 @@
 #!/usr/bin/env python3
 
+import os
 import requests
 import unittest
 
 from assertpy import assert_that
 
-COMMENT_SIDECAR_URL = 'http://localhost/comment-sidecar-js-delivery.php'
+COMMENT_SIDECAR_BASE_URL = os.environ.get(
+    'COMMENT_SIDECAR_BASE_URL', 'http://localhost'
+).rstrip('/')
+COMMENT_SIDECAR_URL = (
+    f'{COMMENT_SIDECAR_BASE_URL}/comment-sidecar-js-delivery.php'
+)
 
 def test_GET_js_with_translations_path_and_site():
     response = requests.get(COMMENT_SIDECAR_URL)
@@ -19,7 +25,7 @@ def test_GET_js_with_translations_path_and_site():
     assert_that(js).does_not_contain("{{name}}")
     assert_that(js).contains("Name")
     assert_that(js).does_not_contain("{{emailHint}}")
-    assert_that(js).contains("The E-Mail is optional.")
+    assert_that(js).contains("The e-mail is optional.")
     assert_that(js).does_not_contain("{{submit}}")
     assert_that(js).contains("Submit")
     assert_that(js).does_not_contain("{{noCommentsYet}}")
