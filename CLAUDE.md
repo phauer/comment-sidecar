@@ -5,8 +5,9 @@ Plain PHP backend (no Composer, no dependencies) plus one JS file, MySQL or Mari
 ## Public Repo, Private Deployment
 
 - This repo is public. Never commit domains, mail addresses, hosts, credentials or deploy scripts of a real installation.
-- Everything deployment-specific lives in the gitignored `deploy/` folder (production `config.php`, `deploy.sh`, `deploy.env`, one-off SQL). Tests, docs and examples use generic names (`localhost`, `example.com`).
-- `src/config.php` is the dev config used by docker and the tests. Production gets its own `config.php` from `deploy/`.
+- `deploy/deploy.sh`, `deploy/config.example.php` and `deploy/deploy.example.env` are tracked and generic. The real `deploy/config.php`, `deploy/deploy.env` and one-off SQL are gitignored (whitelist in `.gitignore`). Tests, docs and examples use generic names (`localhost`, `example.com`).
+- A new option in `src/config.php` must be added to `deploy/config.example.php` too. `test/test_deploy_examples.py` checks it.
+- `src/config.php` is the dev config used by docker and the tests. Production gets its own `config.php` from your private `deploy/config.php`.
 
 ## Running the Tests
 

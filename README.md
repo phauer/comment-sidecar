@@ -132,7 +132,17 @@ python import/import_disqus_comments.py --disqus_xml_file phauer.xml --site_url 
 
 ## Deployment
 
-The repository contains no deployment script, because it would need your hosting details and credentials. Keep your own deployment files (production `config.php`, an rsync script, ...) in a `deploy/` folder in your checkout. It is listed in `.gitignore`, so nothing in there is ever committed. Make sure to back it up elsewhere.
+[`deploy/deploy.sh`](deploy/deploy.sh) deploys to a web space over ssh and rsync. Your real values stay local: `deploy/config.php` and `deploy/deploy.env` are in `.gitignore`, as is every other file in `deploy/` except the script and the `*.example.*` files. Back the private files up elsewhere.
+
+First-time setup:
+
+1. Create the database and run [`sql/init.sql`](sql/init.sql).
+2. `cp deploy/config.example.php deploy/config.php` and fill in your sites and database credentials. It is uploaded as `config.php` on the server.
+3. `cp deploy/deploy.example.env deploy/deploy.env` and fill in the ssh target (an alias from `~/.ssh/config` works), the remote directory, the backend url and the site keys to smoke test.
+4. `docker compose up -d`, then `deploy/deploy.sh --dry-run` to see what would be uploaded.
+5. `deploy/deploy.sh` for the real run.
+
+The script runs the tests (`--skip-tests` to skip them), uploads a whitelist of files from `src` (never the dev `config.php` or the playgrounds, no `--delete`), uploads your `config.php` with `chmod 600` and smoke tests every site. An unknown site must return 400. Back up the database and the server files before a deploy. To roll back, upload the old files again.
 
 # Privacy Policy
 

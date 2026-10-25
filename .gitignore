@@ -2,7 +2,11 @@
 *.iml
 __pycache__
 node_modules/
-deploy/
+# private deployment values stay local. the deploy script and the examples are tracked.
+deploy/*
+!deploy/deploy.sh
+!deploy/*.example.env
+!deploy/*.example.php
 import/*.xml
 import/*.xml.gz
 .venv/
