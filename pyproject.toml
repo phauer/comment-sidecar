@@ -3,19 +3,20 @@ name = "comment-sidecar-tests"
 version = "0.1.0"
 description = ""
 authors = ["Philipp Hauer"]
+package-mode = false
 
 [tool.poetry.dependencies]
-python = "^3.8"
-requests = "^2.23.0"
-"path.py" = "^12.4.0"
-python-dateutil = "^2.8.1"
-assertpy = "^1.0"
-mysql-connector-python = "^8.0.20"
-click = "^7.1.2"
+python = ">=3.10,<3.15"
+requests = "^2.32"
+"path.py" = "^12.5.0"
+python-dateutil = "^2.9"
+assertpy = "^1.1"
+mysql-connector-python = "^9.0"
+click = "^8.1"
 
-[tool.poetry.dev-dependencies]
-pytest = "^5.4.2"
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.0"
 
 [build-system]
-requires = ["poetry>=0.12"]
-build-backend = "poetry.masonry.api"
+requires = ["poetry-core>=1.8"]
+build-backend = "poetry.core.masonry.api"
