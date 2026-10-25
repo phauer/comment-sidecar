@@ -64,11 +64,22 @@ Open `config.php` and configure it:
 
 ```php
 <?php
-const LANGUAGE = "en"; # see the `translations` folder for supported languages
-const SITE = "mydomain.com"; # key for this site to identity comments of this site
-const E_MAIL_FOR_NOTIFICATIONS = "your.email@domain.com"; # admin mail that will receive a notification e-mail after every new comment
-const BASE_URL = "http://mydomain.com/"; # base url of the comment-sidecar backend. can differ from the embedding site.
-const ALLOWED_ACCESSING_SITES = [ "http://domainA.com", "http://domainB.com" ]; # sites that are allowed to access the backend (required when the backend is deployed on a different domain than the embedding site.)
+# All sites served by this installation. One installation and one database can serve many sites.
+# The key (here "mydomain.com") is the site key. The embedding site passes it as `comment-sidecar-js-delivery.php?site=<key>` and it's stored with every comment.
+const SITES = [
+    "mydomain.com" => [
+        "url" => "https://mydomain.com", # base url of the site. used to build the links to the comments in e-mails.
+        "language" => "en", # see the `translations` folder for supported languages
+        "notificationEmail" => "your.email@domain.com", # admin mail that will receive a notification e-mail after every new comment
+        "allowedOrigins" => [ "https://mydomain.com" ], # origins that are allowed to access the backend for this site (required when the backend is deployed on a different domain than the embedding site.)
+        "formTemplate" => "bootstrap-default", # see the `form-templates` folder for the available form templates or define your own. examples: "bootstrap-default" or "bulma-default".
+        "buttonCssAddComment" => "btn btn-link", # css classes for the button. bootstrap: "btn btn-link". bulma: "button is-link"
+        "buttonCssReply" => "btn btn-link", # css classes for the button. bootstrap: "btn btn-link". bulma: "button is-link is-small"
+    ],
+];
+const DEFAULT_SITE = "mydomain.com"; # used if the embedding site doesn't pass a `site` parameter to the js delivery script.
+
+const BASE_URL = "https://comments.mydomain.com/"; # base url of the comment-sidecar backend. can differ from the embedding sites.
 
 const DB_HOST = 'localhost'; # to access from host system, use 127.0.0.1
 const DB_NAME = 'wb3d23s';
@@ -76,15 +87,13 @@ const DB_USER = 'wb3d23s';
 const DB_PW = '1234';
 const DB_PORT = 3306;
 
-const FORM_TEMPLATE = "bootstrap-default"; # see the `form-templates` folder for the available form templates or define your own. examples: "bootstrap-default" or "bulma-default".
-const BUTTON_CSS_CLASSES_ADD_COMMENT = "btn btn-link"; # css classes for the button. bootstrap: "btn btn-link". bulma: "button is-link"
-const BUTTON_CSS_CLASSES_REPLY = "btn btn-link"; # css classes for the button. bootstrap: "btn btn-link". bulma: "button is-link is-small"
-
 const RATE_LIMIT_THRESHOLD_SECONDS = "60"; # how long a user (defined by their IP) have to wait until they can comment again
 const UNSUBSCRIBE_DELAY_SECONDS = "2"; # artificially delay responses of the unsubscribe link to delay brute force attacks.
 ```
 
-Open the HTML file where you like to embed the comments. Insert the following snippet and set the correct path of the `comment-sidecar-js-delivery.php` file.
+To serve another site with the same installation and database, just add another entry to `SITES`. Requests for unknown sites are rejected, and a site can only be used from its own `allowedOrigins`.
+
+Open the HTML file where you like to embed the comments. Insert the following snippet and set the correct path of the `comment-sidecar-js-delivery.php` file. Append `?site=<your site key>` (one of the keys in `SITES`). Without it, the `DEFAULT_SITE` is used.
 
 ```html
 <aside id="comment-sidecar"></aside>
@@ -93,7 +102,7 @@ Open the HTML file where you like to embed the comments. Insert the following sn
         const scriptNode = document.createElement('script');
         scriptNode.type = 'text/javascript';
         scriptNode.async = true;
-        scriptNode.src = 'http://domainC.com/comment-sidecar-js-delivery.php'; // adjust to the correct path
+        scriptNode.src = 'http://domainC.com/comment-sidecar-js-delivery.php?site=mydomain.com'; // adjust to the correct path and site key
         (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(scriptNode);
     })();
 </script>
@@ -120,6 +129,10 @@ python import/import_disqus_comments.py --help
 # execute the command
 python import/import_disqus_comments.py --disqus_xml_file phauer.xml --site_url https://phauer.com --cs_site_key phauer.com --db_host db_host --db_port 3306 --db_user db_user --db_password db_password --db_name db_name
 ``` 
+
+## Deployment
+
+The repository contains no deployment script, because it would need your hosting details and credentials. Keep your own deployment files (production `config.php`, an rsync script, ...) in a `deploy/` folder in your checkout. It is listed in `.gitignore`, so nothing in there is ever committed. Make sure to back it up elsewhere.
 
 # Privacy Policy
 

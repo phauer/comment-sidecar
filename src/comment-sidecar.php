@@ -41,23 +41,32 @@ function main() {
             }
         }
     } catch (Throwable $ex) {
-        if ($ex instanceof InvalidRequestException) {
-            http_response_code(400);
-            echo '{ "message" : "' . $ex->getMessage() . '" }';
-        } else { //like PDOException
-            http_response_code(500);
-            echo '{ "message" : "' . $ex->getMessage() . '" }';
-        }
+        respondWithError($ex);
     }
 }
 
 function setCORSHeader() {
+    // site-specific origins are enforced in checkOriginIsAllowedForSite(). The preflight request doesn't know the site.
     $http_origin = $_SERVER['HTTP_ORIGIN'] ?? '';
-    if (in_array($http_origin, ALLOWED_ACCESSING_SITES)) {
+    $allowedOrigins = array_merge(...array_column(SITES, 'allowedOrigins'));
+    if (in_array($http_origin, $allowedOrigins, true)) {
         header("Access-Control-Allow-Origin: $http_origin");
         header('Access-Control-Allow-Methods: GET, POST');
         header('Access-Control-Allow-Headers: Content-Type');
     }
+}
+
+function checkOriginIsAllowedForSite(array $siteConfig) {
+    $origin = $_SERVER['HTTP_ORIGIN'] ?? null;
+    if ($origin === null or $origin === getBackendOrigin() or in_array($origin, $siteConfig['allowedOrigins'], true)) {
+        return; // no origin (e.g. curl), same-origin request or an origin that is configured for this site
+    }
+    throw new ForbiddenRequestException("This origin is not allowed to access the site.");
+}
+
+function getBackendOrigin(): string {
+    $url = parse_url(BASE_URL);
+    return $url['scheme'] . '://' . $url['host'] . (isset($url['port']) ? ':' . $url['port'] : '');
 }
 
 function isInvalidReplyToId($ex){
@@ -69,6 +78,7 @@ function getCommentsAsJson() {
         or !isset($_GET['path']) or empty($_GET['path'])) {
         throw new InvalidRequestException("Please submit both query parameters 'site' and 'path'");
     }
+    checkOriginIsAllowedForSite(getSiteConfig($_GET['site']));
     $stmt = Database::getConnection()->prepare("SELECT id, author, content, email, reply_to, site, path, unix_timestamp(creation_date) as creationTimestamp FROM comments WHERE site = :site and path = :path ORDER BY creation_date desc;");
     $stmt->bindParam(":site", $_GET['site']);
     $stmt->bindParam(":path", $_GET['path']);
@@ -168,6 +178,7 @@ function validatePostedComment($comment){
     checkMaxLength($comment, 'email', 40);
     checkMaxLength($comment, 'site', 40);
     checkMaxLength($comment, 'path', 170);
+    checkOriginIsAllowedForSite(getSiteConfig($comment['site']));
 }
 
 function checkMaxLength($comment, $fieldName, $maxLength) {
@@ -195,13 +206,13 @@ function sendNotificationToAdminViaMail($comment) {
     $message .= "URL: $commentUrl\n";
     $message .= "Message: " . $comment["content"] . "\n";
     $subject = "Comment by $author on $path";
-    sendMail(E_MAIL_FOR_NOTIFICATIONS, $comment['author'], $comment['email'] ?? null, $message, $subject);
+    sendMail(getSiteConfig($comment['site'])['notificationEmail'], $comment['author'], $comment['email'] ?? null, $message, $subject);
 }
 
 function sendNotificationToParentAuthorViaMail($new_comment){
     $parentComment = find_parent_author_email($new_comment["replyTo"]);
     if ($parentComment !== null) {
-        $translations = readTranslations();
+        $translations = readTranslations(getSiteConfigOrDefault($parentComment['site'])['language']);
         $parentAuthor = $parentComment['author'];
         $author = $new_comment['author'];
         $unsubscribeUrl = BASE_URL . "unsubscribe.php?commentId=".$parentComment["id"]."&unsubscribeToken=".$parentComment["unsubscribe_token"];
@@ -219,8 +230,8 @@ function sendNotificationToParentAuthorViaMail($new_comment){
 }
 
 function createCommentUrl($comment): string {
-    $url = $comment['site'] . $comment['path'] . "#comment-sidecar";
-    return $url;
+    $siteUrl = rtrim(getSiteConfig($comment['site'])['url'], '/');
+    return $siteUrl . $comment['path'] . "#comment-sidecar";
 }
 
 function sendMail($toMail, $fromName, $fromEmail, $message, $subject){

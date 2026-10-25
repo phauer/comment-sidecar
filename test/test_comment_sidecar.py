@@ -15,7 +15,9 @@ UNSUBSCRIBE_SUCCESS_MSG = "unsubscribed successfully"
 UNSUBSCRIBE_ERROR_MSG = "Nothing has been updated. Either the comment doesn't exist or the unsubscribe token is invalid."
 ADMIN_EMAIL = 'test@localhost.de'
 DEFAULT_PATH = "/blogpost1/"
-DEFAULT_SITE = "https://petersworld.com"
+DEFAULT_SITE = "localhost"
+GERMAN_SITE = "localhost-de"
+GERMAN_SITE_ADMIN_EMAIL = "test-de@localhost.de"
 ERROR_MESSAGE_MISSING_SITE_PATH = "Please submit both query parameters 'site' and 'path'"
 INVALID_QUERY_PARAMS_UNSUBSCRIBE = "Please submit both query parameters 'commentId' and 'unsubscribeToken'"
 COMMENT_SIDECAR_URL = 'http://localhost/comment-sidecar.php'
@@ -197,8 +199,8 @@ def test_GET_different_paths():
     assert_that(response.json()).is_length(1)
 
 def test_GET_different_sites():
-    site_with_two_comments = "mydomain2.com"
-    site_with_one_comment = "mydomain1.com"
+    site_with_two_comments = DEFAULT_SITE
+    site_with_one_comment = GERMAN_SITE
 
     post_payload = create_post_payload()
     post_payload['site'] = site_with_two_comments
@@ -236,6 +238,70 @@ def test_POST_non_string_field_is_rejected_with_400_and_no_php_error(field):
     assert_that(response.status_code).is_equal_to(400)
     assert_that(response.json()['message']).is_equal_to(field + " is missing, empty or blank")
 
+def test_GET_unknown_site_is_rejected():
+    response = get_comments(site="unknown.com", assert_success=False)
+    assert_that(response.status_code).is_equal_to(400)
+    assert_that(response.json()['message']).contains("Unknown site")
+
+def test_POST_unknown_site_is_rejected():
+    post_payload = create_post_payload()
+    post_payload['site'] = "unknown.com"
+    response = post_comment(post_payload, assert_success=False)
+    assert_that(response.status_code).is_equal_to(400)
+    assert_that(response.json()['message']).contains("Unknown site")
+    assert_that(get_comments().json()).is_empty()
+
+def test_GET_origin_is_checked_per_site():
+    german_origin = 'http://localhost:3001'  # only configured for the german site
+    url = "{}?site={}&path={}".format(COMMENT_SIDECAR_URL, DEFAULT_SITE, DEFAULT_PATH)
+    response = requests.get(url, headers={'Origin': german_origin})
+    assert_that(response.status_code).is_equal_to(403)
+    response = requests.get("{}?site={}&path={}".format(COMMENT_SIDECAR_URL, GERMAN_SITE, DEFAULT_PATH), headers={'Origin': german_origin})
+    assert_that(response.status_code).is_equal_to(200)
+    assert_cors_headers_exists(response, german_origin)
+
+def test_POST_origin_is_checked_per_site():
+    response = requests.post(url=COMMENT_SIDECAR_URL, json=create_post_payload(), headers={'Origin': 'http://localhost:3001'})
+    assert_that(response.status_code).is_equal_to(403)
+    assert_that(get_comments().json()).is_empty()
+
+def test_POST_from_same_origin_as_backend_is_allowed():
+    response = requests.post(url=COMMENT_SIDECAR_URL, json=create_post_payload(), headers={'Origin': 'http://localhost'})
+    assert_that(response.status_code).is_equal_to(201)
+
+def test_admin_mail_goes_to_the_email_of_the_site():
+    clear_mails()
+    payload = create_post_payload()
+    payload['site'] = GERMAN_SITE
+    post_comment(payload)
+    items = requests.get(MAILHOG_MESSAGES_URL).json()['items']
+    assert_that(items).is_length(1)
+    assert_that(items[0]['Content']['Headers']['To'][0]).is_equal_to(GERMAN_SITE_ADMIN_EMAIL)
+    assert_that(items[0]['Content']['Body']).contains("http://localhost:3001{}#comment-sidecar".format(DEFAULT_PATH))
+
+def test_reply_mail_uses_language_of_the_site():
+    clear_mails()
+    parent = create_post_payload()
+    parent['site'] = GERMAN_SITE
+    parent['email'] = "root@root.com"
+    parent_id = post_comment(parent).json()['id']
+    reply = create_post_payload()
+    reply['site'] = GERMAN_SITE
+    reply['replyTo'] = parent_id
+    reply['author'] = "Replyer"
+    reply['email'] = "reply@reply.com"
+    post_comment(reply)
+    items = requests.get(MAILHOG_MESSAGES_URL).json()['items']
+    mail = find_mail_by_sender(items=items, email_from="Replyer")
+    assert_that(mail).has_subject("Antwort auf dein Kommentar von Replyer")
+
+def test_sites_do_not_see_each_others_comments():
+    german = create_post_payload()
+    german['site'] = GERMAN_SITE
+    post_comment(german)
+    assert_that(get_comments(site=DEFAULT_SITE).json()).is_empty()
+    assert_that(get_comments(site=GERMAN_SITE).json()).is_length(1)
+
 def test_email_header_injection_via_author_is_prevented():
     post_payload = create_post_payload()
     post_payload['author'] = "Peter\r\nBcc: evil@example.com"
@@ -258,7 +324,7 @@ def test_POST_blank_fields(field):
 def test_POST_to_long_fields():
     post_comment_to_long_field_and_assert_error('author', 40)
     post_comment_to_long_field_and_assert_error('email', 40)
-    post_comment_to_long_field_and_assert_error('site', 40)
+    post_comment_to_long_field_and_assert_error('site', 40, valid_length_is_accepted=False) # a site must be configured
     post_comment_to_long_field_and_assert_error('path', 170)
 
 def test_POST_spam_protection_set_url_is_spam():
@@ -322,7 +388,7 @@ def test_escaped_HTML_XSS_protection():
 def test_subscription_mail_on_reply():
     clear_mails()
     path = "/commented-post/"
-    site = "https://mysupersite.de"
+    site = DEFAULT_SITE
     parent = create_post_payload()
     parent["email"] = "root@root.com"
     parent["path"] = path
@@ -353,7 +419,7 @@ def test_subscription_mail_on_reply():
 
     unsubscribe_token = retrieve_unsubscribe_token_from_db(parent_id)
     unsubscribe_link = "{}?commentId={}&unsubscribeToken={}".format(UNSUBSCRIBE_URL, parent_id, unsubscribe_token)
-    link_to_site = "{}{}#comment-sidecar".format(site, path)
+    link_to_site = "{}{}#comment-sidecar".format("http://localhost:1313", path)
     assert_that(mail["body"]).contains(reply["content"])\
         .contains(unsubscribe_link)\
         .contains(link_to_site)\
@@ -559,13 +625,15 @@ def post_comment_with_blank_field_and_assert_error(blank_field: str):
     assert_that(response.status_code).is_equal_to(400)
     assert_that(response.json()['message']).is_equal_to(blank_field + " is missing, empty or blank")
 
-def post_comment_to_long_field_and_assert_error(field: str, max_length: int):
+def post_comment_to_long_field_and_assert_error(field: str, max_length: int, valid_length_is_accepted: bool = True):
     post_payload = create_post_payload()
     post_payload[field] = "x" * (max_length + 1)
     response = post_comment(post_payload, assert_success=False)
     assert_that(response.json()['message']).is_equal_to(field + " value exceeds maximal length of " + str(max_length))
     assert_that(response.status_code).is_equal_to(400)
 
+    if not valid_length_is_accepted:
+        return
     # valid length (check it to avoid off-by-one-errors)
     post_payload[field] = "x" * max_length
     post_comment(post_payload)

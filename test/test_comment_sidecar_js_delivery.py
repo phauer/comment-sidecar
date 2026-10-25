@@ -30,10 +30,24 @@ def test_GET_js_with_translations_path_and_site():
     assert_that(js).contains("Couldn't submit your comment. Reason: ")
 
     assert_that(js).does_not_contain("{{SITE}}")
-    assert_that(js).contains("localhost")
+    assert_that(js).contains('const SITE = "localhost";')
 
     assert_that(js).does_not_contain("{{BASE_PATH}}")
     assert_that(js).contains("/comment-sidecar.php")
+
+def test_GET_js_for_other_site_uses_its_language_and_template():
+    response = requests.get(COMMENT_SIDECAR_URL, params={'site': 'localhost-de'})
+    assert_that(response.status_code).is_equal_to(200)
+    js = response.text
+    assert_that(js).contains('const SITE = "localhost-de";')
+    assert_that(js).contains("Abschicken")
+    assert_that(js).does_not_contain("Submit")
+    assert_that(js).contains("button is-link")
+
+def test_GET_js_for_unknown_site_is_rejected():
+    response = requests.get(COMMENT_SIDECAR_URL, params={'site': 'unknown.com'})
+    assert_that(response.status_code).is_equal_to(400)
+    assert_that(response.json()['message']).contains("Unknown site")
 
 def test_use_gzip():
     response = requests.get(COMMENT_SIDECAR_URL)

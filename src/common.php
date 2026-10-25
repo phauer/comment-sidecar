@@ -10,8 +10,19 @@ function connect() {
     return $handler;
 }
 
-function readTranslations(): array  {
-    $translationFile = 'translations/'. LANGUAGE .'.php';
+function getSiteConfig($site): array {
+    if (!is_string($site) or !isset(SITES[$site])) {
+        throw new InvalidRequestException("Unknown site. Please use one of the configured site keys.");
+    }
+    return SITES[$site];
+}
+
+function getSiteConfigOrDefault($site): array {
+    return (is_string($site) and isset(SITES[$site])) ? SITES[$site] : SITES[DEFAULT_SITE];
+}
+
+function readTranslations(string $language): array  {
+    $translationFile = 'translations/'. $language .'.php';
     if (!file_exists($translationFile)) {
         http_response_code(500);
         echo "Can't find translation file $translationFile";
@@ -22,3 +33,22 @@ function readTranslations(): array  {
 }
 
 class InvalidRequestException extends Exception {}
+class ForbiddenRequestException extends Exception {}
+
+/**
+ * Writes the error response. Never leaks internals (like database messages) for unexpected errors.
+ */
+function respondWithError(Throwable $ex) {
+    if ($ex instanceof InvalidRequestException) {
+        http_response_code(400);
+        $message = $ex->getMessage();
+    } else if ($ex instanceof ForbiddenRequestException) {
+        http_response_code(403);
+        $message = $ex->getMessage();
+    } else { //like PDOException
+        error_log($ex);
+        http_response_code(500);
+        $message = "Internal server error";
+    }
+    echo json_encode(["message" => $message], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+}

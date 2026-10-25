@@ -17,13 +17,7 @@ function main() {
             }
         }
     } catch (Throwable $ex) {
-        if ($ex instanceof InvalidRequestException) {
-            http_response_code(400);
-            echo '{ "message" : "' . $ex->getMessage() . '" }';
-        } else { //like PDOException
-            http_response_code(500);
-            echo '{ "message" : "' . $ex->getMessage() . '" }';
-        }
+        respondWithError($ex);
     }
 }
 

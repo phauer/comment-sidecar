@@ -1,8 +1,21 @@
 <?php
 include_once "common.php";
 
+/**
+ * HTTP endpoint
+ * GET comment-sidecar-js-delivery.php?site=<site>
+ *      delivers the javascript with the translations and settings of the given site.
+ *      Without the site parameter, the DEFAULT_SITE is used.
+ */
 function deliverJsWithTranslationsAndPath(){
     header('Content-Type: application/json');
+    try {
+        $site = $_GET['site'] ?? DEFAULT_SITE;
+        $siteConfig = getSiteConfig($site);
+    } catch (Throwable $ex) {
+        respondWithError($ex);
+        return;
+    }
     $jsTemplate = 'comment-sidecar.js';
     if (!file_exists($jsTemplate)) {
         http_response_code(500);
@@ -12,20 +25,19 @@ function deliverJsWithTranslationsAndPath(){
     $page = file_get_contents($jsTemplate, FILE_USE_INCLUDE_PATH);
 
     // poor man's templating (but at least I prevent nice tooling in the js and html file)
-    $page = str_replace("{{FORM_HTML}}", readFormTemplate(), $page);
-    $page = str_replace("{{BUTTON_CSS_CLASSES_ADD_COMMENT}}", BUTTON_CSS_CLASSES_ADD_COMMENT, $page);
-    $page = str_replace("{{BUTTON_CSS_CLASSES_REPLY}}", BUTTON_CSS_CLASSES_REPLY, $page);
-    foreach (readTranslations() as $key => $translation) {
+    $page = str_replace("{{FORM_HTML}}", readFormTemplate($siteConfig['formTemplate']), $page);
+    $page = str_replace("{{BUTTON_CSS_CLASSES_ADD_COMMENT}}", $siteConfig['buttonCssAddComment'], $page);
+    $page = str_replace("{{BUTTON_CSS_CLASSES_REPLY}}", $siteConfig['buttonCssReply'], $page);
+    foreach (readTranslations($siteConfig['language']) as $key => $translation) {
         $page = str_replace("{{".$key."}}",$translation,$page);
     }
-    $page = str_replace("{{SITE}}",SITE,$page);
-    $currentDir = BASE_URL;
-    $page = str_replace("{{BASE_PATH}}","{$currentDir}comment-sidecar.php", $page);
+    $page = str_replace("{{SITE}}", $site, $page);
+    $page = str_replace("{{BASE_PATH}}", BASE_URL . "comment-sidecar.php", $page);
     echo $page;
 }
 
-function readFormTemplate(): string  {
-    $formTemplateFile = 'form-templates/'. FORM_TEMPLATE .'.html';
+function readFormTemplate(string $formTemplate): string  {
+    $formTemplateFile = 'form-templates/'. $formTemplate .'.html';
     if (!file_exists($formTemplateFile)) {
         http_response_code(500);
         echo "Can't find form template file $formTemplateFile";

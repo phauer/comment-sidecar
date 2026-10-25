@@ -158,7 +158,7 @@
     }
     function loadComments(){
         const path = encodeURIComponent(location.pathname);
-        return fetch(`${BASE_PATH}?site=${SITE}&path=${path}`)
+        return fetch(`${BASE_PATH}?site=${encodeURIComponent(SITE)}&path=${path}`)
             .then(response => response.json())
             .then(createNodesForComments);
     }

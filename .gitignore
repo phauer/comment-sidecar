@@ -2,7 +2,8 @@
 *.iml
 __pycache__
 node_modules/
-deploy-and-destribute.sh
+deploy/
 import/*.xml
 import/*.xml.gz
 .venv/
+temp/
