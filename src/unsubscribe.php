@@ -16,7 +16,7 @@ function main() {
                 break;
             }
         }
-    } catch (Exception $ex) {
+    } catch (Throwable $ex) {
         if ($ex instanceof InvalidRequestException) {
             http_response_code(400);
             echo '{ "message" : "' . $ex->getMessage() . '" }';

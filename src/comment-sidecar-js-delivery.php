@@ -20,7 +20,7 @@ function deliverJsWithTranslationsAndPath(){
     }
     $page = str_replace("{{SITE}}",SITE,$page);
     $currentDir = BASE_URL;
-    $page = str_replace("{{BASE_PATH}}","${currentDir}comment-sidecar.php", $page);
+    $page = str_replace("{{BASE_PATH}}","{$currentDir}comment-sidecar.php", $page);
     echo $page;
 }
 

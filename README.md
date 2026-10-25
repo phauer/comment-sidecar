@@ -36,8 +36,8 @@ I migrated my [blog](https://phauer.com) from Disqus to Comment-Sidecar. Here yo
 
 # Requirements
 
-- PHP. Tested with 7.1.
-- A MySQL database. Tested with 5.7.28.
+- PHP. Tested with 8.5.
+- A MySQL or MariaDB database. Tested with MariaDB 10.11.
 - Some native [ECMAScript 6](http://es6-features.org/) support in the user's browser. For now, the comment-sidecar requires support for basic ECMAScript 6 features like [arrow functions](http://www.caniuse.com/#search=arrow), [`const`](http://www.caniuse.com/#search=const), [template literals](http://www.caniuse.com/#search=template) and other modern methods like [`querySelector()`](http://www.caniuse.com/#search=queryselector) and [`fetch()`](http://www.caniuse.com/#search=fetch). Currently, the supporting browser versions have a global usage of 95% - 98%. This was good enough for me. So I decided against a compilation with Babel in order to avoid a dedicated build process. However, pull requests are always welcome. Alternatively, you can compile the `comment-sidecar.js` manually once only.
 
 # Try it out up front!

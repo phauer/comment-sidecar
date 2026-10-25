@@ -19,7 +19,7 @@ def test_GET_js_with_translations_path_and_site():
     assert_that(js).does_not_contain("{{name}}")
     assert_that(js).contains("Name")
     assert_that(js).does_not_contain("{{emailHint}}")
-    assert_that(js).contains("The E-Mail is optional.")
+    assert_that(js).contains("The e-mail is optional.")
     assert_that(js).does_not_contain("{{submit}}")
     assert_that(js).contains("Submit")
     assert_that(js).does_not_contain("{{noCommentsYet}}")

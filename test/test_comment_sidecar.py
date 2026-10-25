@@ -219,6 +219,30 @@ def test_POST_without_optional_email():
     response = post_comment(post_payload)
     assert_that(response.json()['id']).is_equal_to(1)
 
+def test_GET_without_origin_header_produces_no_php_warnings():
+    response = get_comments()
+    assert_that(response.text).is_equal_to('[]')
+
+def test_POST_invalid_json_body_is_rejected_with_400():
+    response = requests.post(url=COMMENT_SIDECAR_URL, data="not json", headers={'Content-Type': 'application/json'})
+    assert_that(response.status_code).is_equal_to(400)
+    assert_that(response.json()).contains_key('message')
+
+@pytest.mark.parametrize("field", ['author', 'content', 'site', 'path'])
+def test_POST_non_string_field_is_rejected_with_400_and_no_php_error(field):
+    post_payload = create_post_payload()
+    post_payload[field] = ["not", "a", "string"]
+    response = post_comment(post_payload, assert_success=False)
+    assert_that(response.status_code).is_equal_to(400)
+    assert_that(response.json()['message']).is_equal_to(field + " is missing, empty or blank")
+
+def test_email_header_injection_via_author_is_prevented():
+    post_payload = create_post_payload()
+    post_payload['author'] = "Peter\r\nBcc: evil@example.com"
+    post_comment(post_payload)
+    mail = requests.get(MAILHOG_MESSAGES_URL).json()['items'][0]
+    assert_that(mail['Content']['Headers']).does_not_contain_key('Bcc')
+
 @pytest.mark.parametrize("field", {'author', 'content', 'site', 'path'})
 def test_POST_missing_fields(field):
     post_comment_with_missing_field_and_assert_error(field)
