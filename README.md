@@ -114,20 +114,18 @@ A complete example for the frontend can be found in [`src/playground.html`](http
 
 # Import Existing Disqus Comments into Comment-Sidecar
 
-The import script needs Python 3 and the dependency management tool [Poetry](https://python-poetry.org/).
+The import script needs [uv](https://docs.astral.sh/uv/), which also installs the right Python.
 
 First, Export your Disqus Comments as an XML file. Details can be found [here](https://help.disqus.com/en/articles/1717164-comments-export).
 
 Second, call
 
 ```bash
-poetry shell
-
 # print the help for the CLI
-python import/import_disqus_comments.py --help 
+uv run import/import_disqus_comments.py --help
 
 # execute the command
-python import/import_disqus_comments.py --disqus_xml_file phauer.xml --site_url https://phauer.com --cs_site_key phauer.com --db_host db_host --db_port 3306 --db_user db_user --db_password db_password --db_name db_name
+uv run import/import_disqus_comments.py --disqus_xml_file phauer.xml --site_url https://phauer.com --cs_site_key phauer.com --db_host db_host --db_port 3306 --db_user db_user --db_password db_password --db_name db_name
 ``` 
 
 ## Deployment
@@ -175,25 +173,22 @@ http POST http://localhost/comment-sidecar.php < adhoc/comment-payload.json
 
 ## Run the Python Tests for the Backend
 
-Python 3.5+ and [Poetry](https://python-poetry.org/) is required. Check `python3 --version`. On Arch Linux, you can install Poetry with `yay install python-poetry`,
+[uv](https://docs.astral.sh/uv/) is required. It installs the Python version from `.python-version` and the dependencies on demand.
 
 ```bash
 # start mysql database and mailhog in docker containers
 docker-compose up -d
 
-# install dependencies in a venv
-poetry install 
-poetry env info 
-# configure your IDE with the displayed path
+# create the venv in .venv and install the dependencies
+uv sync
+# configure your IDE with the interpreter .venv/bin/python
 # now, you can execute the tests directly from the IDE
 
 # execute all tests
-poetry shell
-pytest
+uv run pytest
 
 # or only a single test:
-poetry shell
-pytest test/test_comment_sidecar.py
+uv run pytest test/test_comment_sidecar.py
 ```
 
 ## Frontend

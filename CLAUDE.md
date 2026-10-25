@@ -11,7 +11,7 @@ Plain PHP backend (no Composer, no dependencies) plus one JS file, MySQL or Mari
 
 ## Running the Tests
 
-- `docker compose up -d`, then `poetry run pytest test` (Poetry needs Python below 3.15, `mysql-connector-python` still uses `ssl.PROTOCOL_TLSv1`).
+- `docker compose up -d`, then `uv run pytest test` (uv uses the Python from `.python-version`. It must stay below 3.14, because `mysql-connector-python` still uses `ssl.PROTOCOL_TLSv1`).
 - The suite needs port 80, 3306 and 8025. If another container holds port 80, stop it first and restart it afterwards.
 - Tests rewrite `RATE_LIMIT_THRESHOLD_SECONDS` in `src/config.php` and `conftest.py` restores it. Keep that constant's format.
 - Run with `display_errors=On` (the Dockerfile does). A PHP warning in a response body breaks the JSON and the tests catch it.

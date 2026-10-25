@@ -32,11 +32,11 @@ echo "== target: ${SSH_TARGET}:${REMOTE_DIR} (${BASE_URL}), dry run: ${DRY_RUN}"
 
 if [[ "$SKIP_TESTS" == false ]]; then
     echo "== running tests (needs 'docker compose up')"
-    # PYTEST can override the command. otherwise use poetry (see README) or a pytest on the PATH
+    # PYTEST can override the command. otherwise use uv (see README) or a pytest on the PATH
     if [[ -n "${PYTEST:-}" ]]; then PYTEST_CMD=("${PYTEST}")
-    elif command -v poetry >/dev/null; then PYTEST_CMD=(poetry run pytest)
+    elif command -v uv >/dev/null; then PYTEST_CMD=(uv run pytest)
     elif command -v pytest >/dev/null; then PYTEST_CMD=(pytest)
-    else echo "neither poetry nor pytest found. Install the test dependencies (README) or use --skip-tests."; exit 1
+    else echo "neither uv nor pytest found. Install the test dependencies (README) or use --skip-tests."; exit 1
     fi
     (cd "${ROOT_DIR}" && "${PYTEST_CMD[@]}" -q test)
 fi
