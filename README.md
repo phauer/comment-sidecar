@@ -228,4 +228,4 @@ Use host `127.0.0.1` instead of `localhost`! Port `3306`. Database `comment-side
 
 ## Debugging with IntelliJ IDEA/PhpStorm
 
-A tutorial for set up remote debugging of PHP code executed in a Docker container can be found [here](https://blog.philipphauer.de/debug-php-docker-container-idea-phpstorm/). 
+A tutorial for set up remote debugging of PHP code executed in a Docker container can be found [here](https://phauer.com/2017/debug-php-docker-container-idea-phpstorm/). 
